@@ -1,0 +1,24 @@
+{
+  "name": "group7_tsacad_capstone_project",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Abioye-Bolaji/Group7_TsAcad_Capstone_Project.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Abioye-Bolaji/Group7_TsAcad_Capstone_Project/issues"
+  },
+  "homepage": "https://github.com/Abioye-Bolaji/Group7_TsAcad_Capstone_Project#readme",
+  "dependencies": {
+    "express": "^5.2.1"
+  }
+}
