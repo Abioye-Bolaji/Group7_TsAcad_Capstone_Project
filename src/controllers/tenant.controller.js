@@ -1,4 +1,4 @@
-const tenantService = require('../services/tenantService');
+const tenantService = require('../services/tenant.service');
 const { sendSuccess, sendError } = require('../utils/response');
 const {
     validateBody,
@@ -6,7 +6,7 @@ const {
     updateTenantSchema,
     updateSettingsSchema,
     upgradePlanSchema,
-} = require('../utils/tenantValidation');
+} = require('../utils/tenant.validation');
 
 /**
  * @desc Tenant Controller — HTTP layer only

@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const tenantController = require('../controllers/tenantController');
+const tenantController = require('../controllers/tenant.controller');
 
 /**
  * @desc Tenant Management Routes

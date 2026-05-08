@@ -1,4 +1,4 @@
-const Tenant = require('../models/Tenant');
+const Tenant = require('../models/tenant.model');
 
 /**
  * @desc Tenant Service — Business Logic Layer

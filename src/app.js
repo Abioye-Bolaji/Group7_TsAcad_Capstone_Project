@@ -2,11 +2,11 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
-const tenantMiddleware = require('./middlewares/tenant');
+const tenantMiddleware = require('./middlewares/tenant.middleware');
 const { sendSuccess, sendError } = require('./utils/response');
 
 // ─── Route Imports ────────────────────────────────────────────────────────────
-const tenantRoutes = require('./routes/tenantRoutes');
+const tenantRoutes = require('./routes/tenant.routes');
 // Future routes (added by teammates as they complete their features):
 // const authRoutes       = require('./routes/authRoutes');       // F1
 // const questionRoutes   = require('./routes/questionRoutes');   // F3
