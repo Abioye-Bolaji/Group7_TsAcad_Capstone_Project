@@ -1,0 +1,235 @@
+const crypto = require('crypto');
+const BlacklistedToken = require('../models/BlacklistedToken');
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
+const { v4: uuidv4 } = require('uuid');
+
+const User = require('../models/User');
+
+const {
+    generateAccessToken,
+    generateRefreshToken,
+} = require('../utils/generateToken');
+
+const sendEmail = require('../utils/sendEmail');
+
+// REGISTER USER
+const registerUser = async (userData) => {
+    const existingUser = await User.findOne({
+        email: userData.email,
+    });
+
+    if (existingUser) {
+        throw new Error('Email already registered');
+    }
+
+    // tenantId required for non-super-admin users
+    if (
+        userData.role !== 'super_admin' &&
+        !userData.tenantId
+    ) {
+        throw new Error(
+            'tenantId is required for non-super-admin users'
+        );
+    }
+
+    const hashedPassword = await bcrypt.hash(
+        userData.password,
+        Number(process.env.BCRYPT_ROUNDS)
+    );
+
+    const verificationToken = uuidv4();
+
+    const user = await User.create({
+        ...userData,
+        password: hashedPassword,
+        emailVerificationToken: verificationToken,
+    });
+
+    return user;
+};
+
+
+
+// LOGIN USER
+const loginUser = async ({ email, password }) => {
+    const user = await User.findOne({ email });
+
+    if (!user) {
+        throw new Error('Invalid email or password');
+    }
+
+    const isPasswordCorrect = await bcrypt.compare(
+        password,
+        user.password
+    );
+
+    if (!isPasswordCorrect) {
+        throw new Error('Invalid email or password');
+    }
+
+    const accessToken = generateAccessToken(user);
+
+    const refreshToken = generateRefreshToken(user);
+
+    user.refreshToken = refreshToken;
+
+    await user.save();
+
+    return {
+        user,
+        accessToken,
+        refreshToken,
+    };
+};
+
+//Logout User
+const logoutUser = async (token) => {
+
+    const decoded = jwt.decode(token);
+
+    await BlacklistedToken.create({
+        token,
+        expiresAt: new Date(decoded.exp * 1000),
+    });
+
+    return true;
+};
+
+//EMAIL VERIFICATION FUNCTION
+const verifyEmail = async (token) => {
+
+    const user = await User.findOne({
+        emailVerificationToken: token,
+    });
+
+    if (!user) {
+        throw new Error('Invalid verification token');
+    }
+
+    user.isEmailVerified = true;
+    user.emailVerificationToken = null;
+
+    await user.save();
+
+    return user;
+};
+
+//FORGOT PASSWORD FUNCTION
+const forgotPassword = async (email) => {
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+        throw new Error('User not found');
+    }
+
+    const resetToken =
+        crypto.randomBytes(32).toString('hex');
+
+    user.passwordResetToken = resetToken;
+
+    user.passwordResetExpires =
+        Date.now() + 1000 * 60 * 30;
+
+    await user.save();
+
+    const resetUrl =
+`http://localhost:5000/api/v1/auth/reset-password/${resetToken}`;
+
+    await sendEmail(
+        user.email,
+        'Reset Password',
+        `
+        <h2>Password Reset</h2>
+        <p>Click below to reset your password:</p>
+        <a href="${resetUrl}">
+            Reset Password
+        </a>
+        `
+    );
+
+    return true;
+};
+
+//RESET PASSWORD FUNCTION
+const resetPassword = async (
+    token,
+    password
+) => {
+
+    const user = await User.findOne({
+        passwordResetToken: token,
+        passwordResetExpires: {
+            $gt: Date.now(),
+        },
+    });
+
+    if (!user) {
+        throw new Error(
+            'Invalid or expired reset token'
+        );
+    }
+
+    const hashedPassword = await bcrypt.hash(
+    password,
+    Number(process.env.BCRYPT_ROUNDS)
+ );
+
+ user.password = hashedPassword;
+
+    user.passwordResetToken = null;
+    user.passwordResetExpires = null;
+
+    await user.save();
+
+    return true;
+};
+
+//REFRESH TOKEN FUNCTION
+const refreshAccessToken = async (
+    refreshToken
+) => {
+
+    if (!refreshToken) {
+        throw new Error(
+            'Refresh token required'
+        );
+    }
+
+    const decoded = jwt.verify(
+        refreshToken,
+        process.env.JWT_REFRESH_SECRET
+    );
+
+    const user = await User.findById(decoded.id);
+
+    if (!user) {
+        throw new Error('User not found');
+    }
+
+    if (user.refreshToken !== refreshToken) {
+        throw new Error(
+            'Invalid refresh token'
+        );
+    }
+
+    const newAccessToken =
+        generateAccessToken(user);
+
+    return {
+        accessToken: newAccessToken,
+    };
+};
+
+module.exports = {
+    registerUser,
+    loginUser,
+    logoutUser,
+    verifyEmail,
+    forgotPassword,
+    resetPassword,
+    refreshAccessToken,
+};
+
+

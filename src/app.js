@@ -4,6 +4,8 @@ const cors = require('cors');
 const morgan = require('morgan');
 const tenantMiddleware = require('./middlewares/tenant.middleware');
 const { sendSuccess, sendError } = require('./utils/response');
+const authRoutes = require('./routes/authRoutes');
+const errorMiddleware = require('./middlewares/errorMiddleware');
 
 // ─── Route Imports ────────────────────────────────────────────────────────────
 const tenantRoutes = require('./routes/tenant.routes');
@@ -39,7 +41,8 @@ app.get('/health', (req, res) => {
 
 // ─── 3. Auth Routes (Public — login/register don't need tenant scope) ─────────
 // Uncomment when F1 (aniwinner00@gmail.com) publishes their routes:
-// app.use('/api/v1/auth', authRoutes);
+
+app.use('/api/v1/auth', authRoutes);
 
 // ─── 4. DEV-MODE Auth Shim ────────────────────────────────────────────────────
 // ⚠️  TEMPORARY — Remove this entire block when F1 delivers their auth middleware.
@@ -93,13 +96,6 @@ app.use((req, res) => {
 
 // ─── 7. Global Error Handler ──────────────────────────────────────────────────
 // Catches any unhandled errors thrown by async route handlers
-app.use((err, req, res, next) => {
-    console.error('🔥 Unhandled Error:', err);
-    return sendError(
-        res,
-        err.message || 'An unexpected error occurred',
-        err.statusCode || 500
-    );
-});
+app.use(errorMiddleware);
 
 module.exports = app;
