@@ -5,6 +5,7 @@ const morgan = require('morgan');
 const tenantMiddleware = require('./middlewares/tenant.middleware');
 const { sendSuccess, sendError } = require('./utils/response');
 const authRoutes = require('./routes/authRoutes');
+const subscriptionRoutes = require("./routes/subscriptionRoutes");
 const errorMiddleware = require('./middlewares/errorMiddleware');
 
 // ─── Route Imports ────────────────────────────────────────────────────────────
@@ -39,10 +40,15 @@ app.get('/health', (req, res) => {
     });
 });
 
-// ─── 3. Auth Routes (Public — login/register don't need tenant scope) ─────────
+// ─── 3a. Auth Routes (Public — login/register don't need tenant scope) ─────────
 // Uncomment when F1 (aniwinner00@gmail.com) publishes their routes:
 
 app.use('/api/v1/auth', authRoutes);
+
+// ─── 3b. Subscription Routes (Mixed: public plans + protected subscription) ──
+// Public /plans endpoints don't need auth
+// Protected endpoints explicitly use tenantMiddleware
+app.use('/api/v1/subscriptions', subscriptionRoutes);   //F11
 
 // ─── 4. DEV-MODE Auth Shim ────────────────────────────────────────────────────
 // ⚠️  TEMPORARY — Remove this entire block when F1 delivers their auth middleware.
