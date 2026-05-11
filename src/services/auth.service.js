@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const { v4: uuidv4 } = require('uuid');
 
-const User = require('../models/User');
+const User = require('../models/user.model');
 
 const {
     generateAccessToken,
