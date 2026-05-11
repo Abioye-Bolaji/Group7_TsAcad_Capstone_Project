@@ -22,13 +22,16 @@
   "homepage": "https://github.com/Abioye-Bolaji/Group7_TsAcad_Capstone_Project#readme",
   "dependencies": {
     "bcryptjs": "^3.0.3",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "joi": "^18.2.1",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.6.1",
-    "morgan": "^1.10.1"
+    "morgan": "^1.10.1",
+    "nodemailer": "^8.0.7",
+    "uuid": "^14.0.0"
   },
   "devDependencies": {
     "nodemon": "^3.1.14"
