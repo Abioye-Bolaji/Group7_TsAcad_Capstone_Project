@@ -69,7 +69,8 @@ const examSchema = new mongoose.Schema(
         type: mongoose.Schema.Types.ObjectId,
         ref: "Question",
       },
-    ],
+      ],
+    
     randomQuestionCount: {
       type: Number,
       default: 0, //
