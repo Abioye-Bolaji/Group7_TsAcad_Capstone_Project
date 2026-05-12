@@ -1,6 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const questionBankController = require('../controllers/questionbank.controller');
+const upload = require('../middlewares/questionUpload.middleware');
+const {
+    bulkImportQuestions,
+} = require('../controllers/questionbank.controller');
 
 /**
  * @desc Question Bank Routes
@@ -74,6 +78,13 @@ router.delete('/questions/:id',
             requireAuth, 
             requireRole('tenant_admin'),
             questionBankController.deleteQuestion
+        );
+
+router.post('/questions/bulk-upload', 
+            requireAuth,
+            requireRole('tenant_admin'),
+            upload.single('questions'),
+            bulkImportQuestions
         );
 
 module.exports = router;

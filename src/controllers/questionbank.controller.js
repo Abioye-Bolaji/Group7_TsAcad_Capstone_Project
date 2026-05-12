@@ -105,3 +105,106 @@ exports.deleteQuestion = async (req, res) => {
     }
 };
 
+const XLSX = require('xlsx');
+
+/**
+ * @desc Bulk import questions via CSV/Excel
+ * @route POST /api/questions/bulk-import
+ */
+
+exports.bulkImportQuestions = async (req, res) => {
+    try {
+        const tenantId = req.tenantId;
+        // Ensure file exists
+        if (!req.file) {
+            return sendError(res, 'No file uploaded', 400);
+        }
+
+        /**
+         * Read uploaded Excel/CSV file
+         */
+        const workbook = XLSX.read(req.file.buffer, {
+            type: 'buffer',
+        });
+
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+
+        /**
+         * Convert worksheet to JSON
+         */
+        const rows = XLSX.utils.sheet_to_json(worksheet);
+
+        if (!rows.length) {
+            return sendError(res, 'Uploaded file is empty', 400);
+        }
+
+        /**
+         * Transform rows into DB format
+         */
+        const questions = rows.map((row) => {
+            const questionType = row.questionType?.trim();
+            let options = [];
+
+            /**
+             * Build options for MCQ / True-False
+             */
+            if (
+                questionType === 'multiple_choice' ||
+                questionType === 'true_false'
+            ) {
+                const rawOptions = [
+                    row.optionA,
+                    row.optionB,
+                    row.optionC,
+                    row.optionD,
+                ].filter(Boolean);
+
+                options = rawOptions.map((option) => ({
+                    optionText: option,
+                    isCorrect:
+                        option.toString().trim() ===
+                        row.correctAnswer.toString().trim(),
+                }));
+            }
+
+            return {
+                tenantId,
+                subjectId: row.subjectId,
+                topic: row.topic || '',
+                questionType,
+                questionText: row.questionText,
+                options,
+                correctAnswer: row.correctAnswer,
+                difficulty: row.difficulty || 'medium',
+                tags: row.tags
+                    ? row.tags.split(',').map(tag => tag.trim())
+                    : [],
+            };
+        });
+
+        /**
+         * Insert into DB
+         */
+        const importedQuestions =
+            await QuestionBank.insertMany(questions);
+
+        return sendSuccess(
+            res,
+            'Questions imported successfully',
+            {
+                totalImported: importedQuestions.length,
+                questions: importedQuestions,
+            },
+            201
+        );
+
+    } catch (error) {
+        console.error('bulkImportQuestions error:', error);
+        return sendError(
+            res,
+            'Failed to import questions',
+            500
+        );
+    }
+};

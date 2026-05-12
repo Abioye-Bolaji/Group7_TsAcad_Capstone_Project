@@ -7,6 +7,20 @@ const mongoose = require('mongoose');
  *
  * Strategy: Shared Database with tenantId field (agreed by team).
  */ 
+
+const optionSchema = new mongoose.Schema({
+    optionText: {
+        type: String,
+        required: [true, 'Option text is required'],
+        trim: true,
+    },
+
+    isCorrect: {
+        type: Boolean,
+        default: false,
+    },
+});
+
 const questionBankSchema = new mongoose.Schema(
     {
         tenantId: {
@@ -23,31 +37,50 @@ const questionBankSchema = new mongoose.Schema(
             index: true, // For faster queries by studentId
         },
 
+        questionType:{
+            type: String,
+            enum: ['multiple-choice', 'true-false', 'short-answer'],
+            required: true,
+        },
+
         questionText: {
             type: String,
             required: [true, 'Question text is required'],
             trim: true,
         },
 
-        options: [
-            {
-                optionText: {
-                    type: String,
-                    required: [true, 'Option text is required'],
-                    trim: true,
+        options: {
+            type: [optionSchema],
+            validate: {
+                validator: function (options) {
+                    return options.some(opt => opt.isCorrect);
                 },
-                isCorrect: {
-                    type: Boolean,
-                    default: false,
-                },
-
+                message: 'At least one option must be correct',
             },
-        ],
+        },
         difficulty: {
             type: String,
             enum: ['easy', 'medium', 'hard'],
         },
         
+        /**
+         * Track creator
+         */
+        createdBy: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User',
+        },
+
+        /**
+         * Soft delete
+         */
+        isDeleted: {
+            type: Boolean,
+            default: false,
+        },
+    },
+    {
+        timestamps: true,
     }
 );
 
