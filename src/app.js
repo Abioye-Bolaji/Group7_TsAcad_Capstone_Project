@@ -21,6 +21,8 @@ const tenantRoutes = require('./routes/tenant.routes');
 // const auditRoutes      = require('./routes/auditRoutes');      // F12
 // const searchRoutes     = require('./routes/searchRoutes');     // F14
 
+const questionRoutes = require('./routes/questionbank.routes');
+
 const app = express();
 
 // ─── 1. Global Middlewares ────────────────────────────────────────────────────
@@ -101,5 +103,7 @@ app.use((err, req, res, next) => {
         err.statusCode || 500
     );
 });
+
+app.use('/api/v1/questions', questionRoutes);
 
 module.exports = app;
