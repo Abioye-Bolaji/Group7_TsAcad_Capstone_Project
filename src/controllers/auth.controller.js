@@ -2,7 +2,7 @@ const {
     validateBody,
     registerSchema,
     loginSchema,
-} = require('../validations/authValidation');
+} = require('../validations/auth.validation');
 
 const {
     sendSuccess,
@@ -17,7 +17,7 @@ const {
     forgotPassword,
     resetPassword,
     refreshAccessToken,
-} = require('../services/authService');
+} = require('../services/auth.service');
 
 // REGISTER
 const register = async (req, res, next) => {

@@ -1,4 +1,4 @@
-const subscriptionService = require('../services/subscriptionService');
+const subscriptionService = require('../services/subscription.service');
 const { sendSuccess, sendError } = require('../utils/response');
 
 /**
