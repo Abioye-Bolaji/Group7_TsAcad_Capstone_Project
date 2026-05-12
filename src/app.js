@@ -4,9 +4,8 @@ const cors = require('cors');
 const morgan = require('morgan');
 const tenantMiddleware = require('./middlewares/tenant.middleware');
 const { sendSuccess, sendError } = require('./utils/response');
-const authRoutes = require('./routes/auth.routes');
-const subscriptionRoutes = require('./routes/subscription.routes');
-const errorMiddleware = require('./middlewares/error.middleware');
+const authRoutes = require('./routes/authRoutes');
+const errorMiddleware = require('./middlewares/errorMiddleware');
 
 // ─── Route Imports ────────────────────────────────────────────────────────────
 const tenantRoutes = require('./routes/tenant.routes');
