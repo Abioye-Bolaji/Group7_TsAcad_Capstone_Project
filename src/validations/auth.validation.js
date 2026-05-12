@@ -18,9 +18,20 @@ const registerSchema = Joi.object({
 
     lastName: Joi.string().min(2).max(50).required(),
 
-    email: Joi.string().email().required(),
+    email: Joi.string()
+           .email()
+           .required()
+         .messages({
+          'string.email': 'Please provide a valid email address',
+        }),
 
-    password: Joi.string().min(6).required(),
+    password: Joi.string()
+         .pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/)
+         .required()
+        .messages({
+              'string.pattern.base':
+            'Password must contain uppercase, lowercase, and a number',
+        }),
 
     role: Joi.string()
         .valid(

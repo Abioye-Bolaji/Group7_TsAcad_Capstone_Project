@@ -2,9 +2,9 @@ const express = require('express');
 const router = express.Router();
 const multer = require('multer');
 
-const authMiddleware   = require('../middlewares/authMiddleware');
+const authMiddleware   = require('../middlewares/auth.middleware');
 const tenantMiddleware = require('../middlewares/tenant.middleware');
-const authorizeRoles   = require('../middlewares/roleMiddleware');
+const authorizeRoles   = require('../middlewares/role.middleware');
 
 const candidateController = require('../controllers/candidate.controller');
 
