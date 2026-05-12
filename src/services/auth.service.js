@@ -1,5 +1,5 @@
 const crypto = require('crypto');
-const BlacklistedToken = require('../models/BlacklistedToken');
+const BlacklistedToken = require('../models/blacklisted.token');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const { v4: uuidv4 } = require('uuid');
@@ -9,9 +9,9 @@ const User = require('../models/user.model');
 const {
     generateAccessToken,
     generateRefreshToken,
-} = require('../utils/generateToken');
+} = require('../utils/generate.token');
 
-const sendEmail = require('../utils/sendEmail');
+const sendEmail = require('../utils/send.email');
 
 // REGISTER USER
 const registerUser = async (userData) => {

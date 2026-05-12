@@ -1,7 +1,7 @@
 # 🏢 tenantId Contract — Group 7 Multitenancy CBT Platform
 
 > **Published by:** kaluvictor130@gmail.com (Team Lead)
-> **Effective from:** Week 2
+> **Effective from:** During development
 > **Status:** 🟢 ACTIVE — Read before writing a single DB query
 
 ---
