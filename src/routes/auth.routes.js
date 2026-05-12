@@ -2,7 +2,7 @@ const express = require('express');
 
 const router = express.Router();
 
-const authMiddleware = require('../middlewares/authMiddleware');
+const authMiddleware = require('../middlewares/auth.middleware');
 
 const {
     register,
@@ -12,7 +12,7 @@ const {
     forgotUserPassword,
     resetUserPassword,
     refreshToken,
-} = require('../controllers/authController');
+} = require('../controllers/auth.controller');
 
 router.post('/register', register);
 
