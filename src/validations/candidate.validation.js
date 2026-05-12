@@ -34,7 +34,7 @@ const createCandidateSchema = Joi.object({
         'any.required': 'Email is required',
     }),
     phone:           Joi.string().allow('', null).optional(),
-    idNumber:        Joi.string().allowed('', null).optional().messages({
+    idNumber:        Joi.string().allow('', null).optional().messages({
         'any.required': 'Candidate ID/Matriculation number is required',
     }),
     profilePhotoUrl: Joi.string().uri().allow('', null).optional().messages({
@@ -103,6 +103,9 @@ const candidateIdsSchema = Joi.object({
 
 // ─── 7. PIN Login ─────────────────────────────────────────────────────────────
 const pinLoginSchema = Joi.object({
+    tenantId: Joi.string().hex().length(24).required().messages({
+        'any.required': 'Tenant ID is required',
+    }),
     idNumber: Joi.string().required().messages({
         'any.required': 'ID number is required',
     }),

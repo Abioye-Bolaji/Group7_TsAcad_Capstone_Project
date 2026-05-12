@@ -89,7 +89,7 @@ candidateSchema.index({ email: 1, tenantId: 1}, { unique: true });
 candidateSchema.index({ idNumber: 1, tenantId: 1 }, { unique: true, sparse: true });
 
 candidateSchema.pre('save', async function(next) {
-    if (!this.isModified('password') || !this.password) return next();
+    if (!this.isModified('password') || !this.password) return;
     const rounds = parseInt(process.env.BCRYPT_ROUNDS, 10) || 12;
     this.password = await bcrypt.hash(this.password, rounds);
     next();
