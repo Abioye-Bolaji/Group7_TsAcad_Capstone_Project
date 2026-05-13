@@ -4,15 +4,15 @@ const cors = require('cors');
 const morgan = require('morgan');
 const tenantMiddleware = require('./middlewares/tenant.middleware');
 const { sendSuccess, sendError } = require('./utils/response');
-const authRoutes = require('./routes/authRoutes');
-const errorMiddleware = require('./middlewares/errorMiddleware');
+const authRoutes = require('./routes/auth.routes');
+const errorMiddleware = require('./middlewares/error.middleware');
 
 // ─── Route Imports ────────────────────────────────────────────────────────────
 const tenantRoutes = require("./routes/tenant.routes");
 // Future routes (added by teammates as they complete their features):
 // const authRoutes       = require('./routes/authRoutes');       // F1
 // const questionRoutes   = require('./routes/questionRoutes');   // F3
-const examRoutes = require("./routes/examRoutes"); // F4
+const examRoutes = require("./routes/exam.routes"); // F4
 // const candidateRoutes  = require('./routes/candidateRoutes');  // F5
 // const sessionRoutes    = require('./routes/sessionRoutes');    // F6
 // const gradingRoutes    = require('./routes/gradingRoutes');    // F7

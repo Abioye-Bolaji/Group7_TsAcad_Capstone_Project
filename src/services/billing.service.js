@@ -1,6 +1,6 @@
 const Subscription = require('../models/Subscription');
 const SubscriptionPlan = require('../models/SubscriptionPlan');
-const BillingHistory = require('../models/BillingHistory');
+const BillingHistory = require('../models/billing.history');
 
 /**
  * @desc Billing Service
