@@ -1,6 +1,6 @@
 const Subscription = require('../models/subscription.model');
 const SubscriptionPlan = require('../models/subscription-plan.model');
-const BillingHistory = require('../models/BillingHistory');
+const BillingHistory = require('../models/billing-history.model');
 const { v4: uuidv4 } = require('uuid');
 
 /**

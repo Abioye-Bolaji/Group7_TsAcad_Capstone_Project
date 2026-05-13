@@ -16,7 +16,7 @@ const tenantRoutes = require('./routes/tenant.routes');
 const examRoutes = require('./routes/exam.routes'); // F4
 const candidateRoutes  = require('./routes/candidate.routes');  // F5
 const candidateGroupRoutes = require('./routes/candidateGroup.routes');  // F5
-// const sessionRoutes    = require('./routes/sessionRoutes');    // F6
+const sessionRoutes = require('./routes/examSession.router');    // F6
 // const gradingRoutes    = require('./routes/gradingRoutes');    // F7
 // const resultsRoutes    = require('./routes/resultsRoutes');    // F8
 // const analyticsRoutes  = require('./routes/analyticsRoutes'); // F9
@@ -89,7 +89,7 @@ app.use('/api/v1/candidate-groups', candidateGroupRoutes);    //F5
 // Teammates: uncomment your routes below as you complete your features:
 // app.use('/api/v1/questions',    questionRoutes);
 app.use('/api/v1/exams', examRoutes);
-// app.use('/api/v1/sessions',     sessionRoutes);
+app.use('/api/v1/sessions',     sessionRoutes);
 // app.use('/api/v1/scores',       gradingRoutes);
 // app.use('/api/v1/results',      resultsRoutes);
 // app.use('/api/v1/analytics',    analyticsRoutes);
