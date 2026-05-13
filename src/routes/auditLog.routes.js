@@ -5,7 +5,7 @@ const {
     getAuditLogs,
     getAuditLogById,
     getSecurityDashboard,
-} = require('../controller/auditLogController');
+} = require('../controllers/auditLog.controller');
 
 router.get('/security', getSecurityDashboard);
 router.get('/', getAuditLogs);
