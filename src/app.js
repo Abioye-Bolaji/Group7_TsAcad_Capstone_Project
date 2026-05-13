@@ -81,6 +81,7 @@ if (process.env.NODE_ENV !== "production") {
 
 
 // ─── 5. Protected API Routes ──────────────────────────────────────────────────
+app.use(tenantMiddleware);
 app.use('/api/v1/tenants', tenantRoutes);
 app.use('/api/v1/candidates', candidateRoutes);  // F5
 app.use('/api/v1/candidate-groups', candidateGroupRoutes);    //F5
