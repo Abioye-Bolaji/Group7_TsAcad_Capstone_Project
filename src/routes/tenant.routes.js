@@ -2,26 +2,8 @@ const express = require('express');
 const router = express.Router();
 const tenantController = require('../controllers/tenant.controller');
 
-/**
- * @desc Tenant Management Routes
- * Branch: feat/tenant-management
- * Author: kaluvictor130@gmail.com (Team Lead)
- *
- * NOTE ON AUTH GUARDS:
- * The auth middleware (F1 - aniwinner00@gmail.com) will provide:
- *   - requireAuth        → checks valid JWT token
- *   - requireRole(roles) → checks user role
- *
- * These are imported here as placeholders so routes are ready the moment
- * F1 publishes their middleware. Swap the placeholder with the real import.
- *
- * PLACEHOLDER — replace with real auth when F1 is ready:
- *   const { requireAuth, requireRole } = require('../middlewares/auth');
- */
-
-const authMiddleware = require('../middlewares/authMiddleware');
-const tenantMiddleware = require('../middlewares/tenant.middleware');
-const authorizeRoles = require('../middlewares/roleMiddleware');
+const authMiddleware = require('../middlewares/auth.middleware');
+const authorizeRoles = require('../middlewares/role.middleware');
 // ──────────────────────────────────────────────────────────────────────────────
 
 
@@ -37,7 +19,7 @@ const authorizeRoles = require('../middlewares/roleMiddleware');
 router.get(
     '/me',
     authMiddleware,
-    authorizeRoles('tenant_admin', 'super_admin'),
+    authorizeRoles('super_admin', 'tenant_admin'),
     tenantController.getMyTenant
 );
 
@@ -49,7 +31,7 @@ router.get(
 router.patch(
     '/me/settings',
     authMiddleware,
-    authorizeRoles('tenant_admin', 'super_admin'),
+    authorizeRoles('super_admin', 'tenant_admin'),
     tenantController.updateMyTenantSettings
 );
 
