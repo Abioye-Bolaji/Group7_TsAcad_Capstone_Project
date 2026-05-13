@@ -2,46 +2,8 @@ const express = require('express');
 const router = express.Router();
 const tenantController = require('../controllers/tenant.controller');
 
-/**
- * @desc Tenant Management Routes
- * Branch: feat/tenant-management
- * Author: kaluvictor130@gmail.com (Team Lead)
- *
- * NOTE ON AUTH GUARDS:
- * The auth middleware (F1 - aniwinner00@gmail.com) will provide:
- *   - requireAuth        → checks valid JWT token
- *   - requireRole(roles) → checks user role
- *
- * These are imported here as placeholders so routes are ready the moment
- * F1 publishes their middleware. Swap the placeholder with the real import.
- *
- * PLACEHOLDER — replace with real auth when F1 is ready:
- *   const { requireAuth, requireRole } = require('../middlewares/auth');
- */
-
-// ─── Placeholder Auth Guards (remove when F1 publishes auth middleware) ────────
-const requireAuth = (req, res, next) => {
-    // TEMP: Simulates an authenticated super_admin user for development/testing
-    // Replace entirely with: const { requireAuth } = require('../middlewares/auth');
-    if (!req.user) {
-        req.user = {
-            _id: 'temp-super-admin-id',
-            role: 'super_admin',
-            tenantId: null,
-        };
-    }
-    next();
-};
-
-const requireRole = (...roles) => (req, res, next) => {
-    if (!req.user || !roles.includes(req.user.role)) {
-        return res.status(403).json({
-            success: false,
-            message: `Access denied. Required role(s): ${roles.join(', ')}`,
-        });
-    }
-    next();
-};
+const authMiddleware = require('../middlewares/auth.middleware');
+const authorizeRoles = require('../middlewares/role.middleware');
 // ──────────────────────────────────────────────────────────────────────────────
 
 
@@ -56,8 +18,8 @@ const requireRole = (...roles) => (req, res, next) => {
  */
 router.get(
     '/me',
-    requireAuth,
-    requireRole('tenant_admin', 'super_admin'),
+    authMiddleware,
+    authorizeRoles('super_admin', 'tenant_admin'),
     tenantController.getMyTenant
 );
 
@@ -68,8 +30,8 @@ router.get(
  */
 router.patch(
     '/me/settings',
-    requireAuth,
-    requireRole('tenant_admin', 'super_admin'),
+    authMiddleware,
+    authorizeRoles('super_admin', 'tenant_admin'),
     tenantController.updateMyTenantSettings
 );
 
@@ -84,8 +46,8 @@ router.patch(
  */
 router.post(
     '/',
-    requireAuth,
-    requireRole('super_admin'),
+    authMiddleware,
+    authorizeRoles('super_admin'),
     tenantController.createTenant
 );
 
@@ -95,8 +57,8 @@ router.post(
  */
 router.get(
     '/',
-    requireAuth,
-    requireRole('super_admin'),
+    authMiddleware,
+    authorizeRoles('super_admin'),
     tenantController.getAllTenants
 );
 
@@ -106,8 +68,8 @@ router.get(
  */
 router.get(
     '/stats',
-    requireAuth,
-    requireRole('super_admin'),
+    authMiddleware,
+    authorizeRoles('super_admin'),
     tenantController.getTenantStats
 );
 
@@ -118,8 +80,8 @@ router.get(
  */
 router.get(
     '/:identifier',
-    requireAuth,
-    requireRole('super_admin'),
+    authMiddleware,
+    authorizeRoles('super_admin'),
     tenantController.getTenantById
 );
 
@@ -129,8 +91,8 @@ router.get(
  */
 router.patch(
     '/:id',
-    requireAuth,
-    requireRole('super_admin'),
+    authMiddleware,
+    authorizeRoles('super_admin'),
     tenantController.updateTenant
 );
 
@@ -141,8 +103,8 @@ router.patch(
  */
 router.patch(
     '/:id/suspend',
-    requireAuth,
-    requireRole('super_admin'),
+    authMiddleware,
+    authorizeRoles('super_admin'),
     tenantController.suspendTenant
 );
 
@@ -152,8 +114,8 @@ router.patch(
  */
 router.patch(
     '/:id/reactivate',
-    requireAuth,
-    requireRole('super_admin'),
+    authMiddleware,
+    authorizeRoles('super_admin'),
     tenantController.reactivateTenant
 );
 
@@ -164,8 +126,8 @@ router.patch(
  */
 router.patch(
     '/:id/plan',
-    requireAuth,
-    requireRole('super_admin'),
+    authMiddleware,
+    authorizeRoles('super_admin'),
     tenantController.upgradeTenantPlan
 );
 
@@ -175,8 +137,8 @@ router.patch(
  */
 router.delete(
     '/:id',
-    requireAuth,
-    requireRole('super_admin'),
+    authMiddleware,
+    authorizeRoles('super_admin'),
     tenantController.deleteTenant
 );
 

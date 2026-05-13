@@ -1,10 +1,10 @@
 const jwt = require('jsonwebtoken');
 
-const User = require('../models/User');
+const User = require('../models/user.model');
 
 const { sendError } = require('../utils/response');
 
-const BlacklistedToken = require('../models/BlacklistedToken');
+const BlacklistedToken = require('../models/blacklisted.token');
 
 const authMiddleware = async (req, res, next) => {
     try {

@@ -23,13 +23,22 @@ const registerUser = async (userData) => {
         throw new Error('Email already registered');
     }
 
-    // tenantId required for non-super-admin users
+    // Security: Only allow 'tenant_admin' or 'candidate' via public registration
+    // Super Admins must be created via DB seeding or by another Super Admin
+    if (userData.role === 'super_admin') {
+        throw new Error('Unauthorized: You cannot register as a super_admin');
+    }
+
+    // Default to candidate if no role is provided
+    userData.role = userData.role || 'candidate';
+
+    // tenantId required for tenant_admin users
     if (
-        userData.role !== 'super_admin' &&
+        userData.role === 'tenant_admin' &&
         !userData.tenantId
     ) {
         throw new Error(
-            'tenantId is required for non-super-admin users'
+            'tenantId is required for tenant_admin users'
         );
     }
 
@@ -45,6 +54,15 @@ const registerUser = async (userData) => {
         password: hashedPassword,
         emailVerificationToken: verificationToken,
     });
+
+    // Send Verification Email
+    const verificationUrl = `${process.env.APP_URL || 'http://localhost:5000'}/api/v1/auth/verify-email/${verificationToken}`;
+    
+    await sendEmail(
+        user.email,
+        'Verify Your Email',
+        `<h1>Welcome to TS Academy!</h1><p>Please click below to verify your email:</p><a href="${verificationUrl}">Verify Email</a>`
+    ).catch(err => console.error('Verification email failed to send:', err.message));
 
     return user;
 };
