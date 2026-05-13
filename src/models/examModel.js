@@ -1,28 +1,37 @@
-import mongoose from "mongoose";
+const mongoose = require('mongoose');
+
+/**
+ * @desc Exam Model
+ * Defines the structure of an exam in the platform.
+ * Follows the tenantId contract for data isolation.
+ * FIXED: Converted from ES Module (import/export) to CommonJS (require/module.exports)
+ */
 
 const examSchema = new mongoose.Schema(
   {
     title: {
       type: String,
-      required: true,
+      required: [true, 'Exam title is required'],
     },
 
     description: {
       type: String,
+      default: null,
     },
 
     instructions: {
       type: String,
+      default: null,
     },
 
     subject: {
       type: String,
-      required: true,
+      required: [true, 'Subject is required'],
     },
 
     duration: {
       type: Number,
-      required: true,
+      required: [true, 'Duration is required'], // In minutes
     },
 
     totalMarks: {
@@ -32,7 +41,7 @@ const examSchema = new mongoose.Schema(
 
     passMark: {
       type: Number,
-      required: true,
+      required: [true, 'Pass mark is required'],
     },
 
     attemptsAllowed: {
@@ -42,16 +51,18 @@ const examSchema = new mongoose.Schema(
 
     startDate: {
       type: Date,
+      default: null,
     },
 
     endDate: {
       type: Date,
+      default: null,
     },
 
     status: {
       type: String,
-      enum: ["draft", "published", "active", "closed"],
-      default: "draft",
+      enum: ['draft', 'published', 'active', 'closed'],
+      default: 'draft',
     },
 
     randomizeQuestions: {
@@ -67,34 +78,43 @@ const examSchema = new mongoose.Schema(
     questions: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Question",
-      },
-    ],
-    randomQuestionCount: {
-      type: Number,
-      default: 0, //
-    },
-    assignedCandidates: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Candidate",
+        ref: 'Question',
       },
     ],
 
+    randomQuestionCount: {
+      type: Number,
+      default: 0,
+    },
+
+    assignedCandidates: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Candidate',
+      },
+    ],
+
+    // ── Tenant Contract ────────────────────────────────────────────
     tenantId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Tenant",
-      required: true,
+      ref: 'Tenant',
+      required: [true, 'tenantId is required'],
+      index: true,
     },
 
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: 'User',
+      default: null,
     },
   },
   {
     timestamps: true,
-  },
+  }
 );
 
-export default mongoose.model("Exam", examSchema);
+// Indexes for fast tenant-scoped queries
+examSchema.index({ tenantId: 1, status: 1 });
+examSchema.index({ tenantId: 1, subject: 1 });
+
+module.exports = mongoose.model('Exam', examSchema);

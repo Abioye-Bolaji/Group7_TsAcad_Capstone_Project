@@ -1,7 +1,7 @@
 const express = require('express');
 const billingController = require('../controllers/billingController');
-const { authMiddleware } = require('../middlewares/authMiddleware');
-const { tenantMiddleware } = require('../middlewares/tenant.middleware');
+const authMiddleware = require('../middlewares/auth.middleware');
+const tenantMiddleware = require('../middlewares/tenant.middleware');
 
 const router = express.Router();
 

@@ -4,15 +4,16 @@ const cors = require("cors");
 const morgan = require("morgan");
 const tenantMiddleware = require("./middlewares/tenant.middleware");
 const { sendSuccess, sendError } = require("./utils/response");
-const authRoutes = require("./routes/authRoutes");
-const errorMiddleware = require("./middlewares/errorMiddleware");
+const authRoutes = require('./routes/auth.routes');
+const subscriptionRoutes = require('./routes/subscription.routes');
+const billingRoutes = require('./routes/billingRoutes');
+const errorMiddleware = require('./middlewares/error.middleware');
 
 // ─── Route Imports ────────────────────────────────────────────────────────────
-const tenantRoutes = require("./routes/tenant.routes");
+const tenantRoutes = require('./routes/tenant.routes');
 // Future routes (added by teammates as they complete their features):
-// const authRoutes       = require('./routes/authRoutes');       // F1
 // const questionRoutes   = require('./routes/questionRoutes');   // F3
-const examRoutes = require("./routes/examRoutes"); // F4
+const examRoutes = require('./routes/examRoute'); // F4
 // const candidateRoutes  = require('./routes/candidateRoutes');  // F5
 // const sessionRoutes    = require('./routes/sessionRoutes');    // F6
 // const gradingRoutes    = require('./routes/gradingRoutes');    // F7
@@ -42,12 +43,12 @@ app.get("/health", (req, res) => {
 // ─── 3a. Auth Routes (Public — login/register don't need tenant scope) ─────────
 // Uncomment when F1 (aniwinner00@gmail.com) publishes their routes:
 
-app.use("/api/v1/auth", authRoutes);
+app.use('/api/v1/auth', authRoutes);
 
 // ─── 3b. Subscription Routes (Mixed: public plans + protected subscription) ──
 // Public /plans endpoints don't need auth
 // Protected endpoints explicitly use tenantMiddleware
-app.use('/api/v1/subscriptions', subscriptionRoutes);   //F11
+app.use('/api/v1/subscriptions', subscriptionRoutes); // F11
 
 // ─── 4. DEV-MODE Auth Shim ────────────────────────────────────────────────────
 // ⚠️  TEMPORARY — Remove this entire block when F1 delivers their auth middleware.
@@ -83,14 +84,14 @@ app.use("/api/v1/tenants", tenantRoutes);
 
 // Teammates: uncomment your routes below as you complete your features:
 // app.use('/api/v1/questions',    questionRoutes);
-app.use("/api/v1/exams", examRoutes);
+app.use('/api/v1/exams', examRoutes);
 // app.use('/api/v1/candidates',   candidateRoutes);
 // app.use('/api/v1/sessions',     sessionRoutes);
 // app.use('/api/v1/scores',       gradingRoutes);
 // app.use('/api/v1/results',      resultsRoutes);
 // app.use('/api/v1/analytics',    analyticsRoutes);
 // app.use('/api/v1/notifications',notifyRoutes);
-// app.use('/api/v1/billing',      billingRoutes);
+app.use('/api/v1/billing', billingRoutes); // F11
 // app.use('/api/v1/audit',        auditRoutes);
 // app.use('/api/v1/search',       searchRoutes);
 
