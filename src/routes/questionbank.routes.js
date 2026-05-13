@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const questionBankController = require('../controllers/questionbank.controller');
-const upload = require('../middlewares/questionUpload.middleware');
+const upload = require('../middlewares/questionupload.middleware');
 const {
     bulkImportQuestions,
 } = require('../controllers/questionbank.controller');
