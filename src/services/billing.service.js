@@ -1,6 +1,7 @@
-const Subscription = require('../models/Subscription');
-const SubscriptionPlan = require('../models/SubscriptionPlan');
-const BillingHistory = require('../models/BillingHistory');
+const Subscription = require('../models/subscription.model');
+const SubscriptionPlan = require('../models/subscription-plan.model');
+const BillingHistory = require('../models/billing-history.model');
+const mongoose = require('mongoose');
 
 /**
  * @desc Billing Service
@@ -238,7 +239,7 @@ class BillingService {
         ]);
 
         const totalRevenue = await BillingHistory.aggregate([
-            { $match: { tenantId: require('mongoose').Types.ObjectId(tenantId), status: 'paid' } },
+            { $match: { tenantId: new mongoose.Types.ObjectId(tenantId), status: 'paid' } },
             { $group: { _id: null, total: { $sum: '$totalAmount' } } },
         ]);
 

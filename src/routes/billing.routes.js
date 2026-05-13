@@ -1,5 +1,5 @@
 const express = require('express');
-const billingController = require('../controllers/billingController');
+const billingController = require('../controllers/billing.controller');
 const authMiddleware = require('../middlewares/auth.middleware');
 const tenantMiddleware = require('../middlewares/tenant.middleware');
 

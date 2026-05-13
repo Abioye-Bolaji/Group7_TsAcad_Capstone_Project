@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 
-const { createExam, getAllExams } = require('../controllers/examController');
+const { createExam, getAllExams } = require('../controllers/exam.controller');
 const authMiddleware = require('../middlewares/auth.middleware');
 
 /**

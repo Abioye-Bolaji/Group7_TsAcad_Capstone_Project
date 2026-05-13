@@ -1,4 +1,4 @@
-const billingService = require('../services/billingService');
+const billingService = require('../services/billing.service');
 const { sendSuccess, sendError } = require('../utils/response');
 
 /**
@@ -252,7 +252,7 @@ class BillingController {
             if (status) query.status = status;
             if (tenantId) query.tenantId = tenantId;
 
-            const Billing = require('../models/BillingHistory');
+            const Billing = require('../models/billing-history.model');
             const [invoices, total] = await Promise.all([
                 Billing.find(query)
                     .populate('tenantId', 'name email')

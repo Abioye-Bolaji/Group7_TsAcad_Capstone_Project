@@ -1,4 +1,4 @@
-const Exam = require('../models/examModel');
+const Exam = require('../models/exam.model');
 
 /**
  * @desc Exam Service

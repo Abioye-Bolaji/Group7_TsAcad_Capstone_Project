@@ -6,14 +6,14 @@ const tenantMiddleware = require("./middlewares/tenant.middleware");
 const { sendSuccess, sendError } = require("./utils/response");
 const authRoutes = require('./routes/auth.routes');
 const subscriptionRoutes = require('./routes/subscription.routes');
-const billingRoutes = require('./routes/billingRoutes');
+const billingRoutes = require('./routes/billing.routes');
 const errorMiddleware = require('./middlewares/error.middleware');
 
 // ─── Route Imports ────────────────────────────────────────────────────────────
 const tenantRoutes = require('./routes/tenant.routes');
 // Future routes (added by teammates as they complete their features):
 // const questionRoutes   = require('./routes/questionRoutes');   // F3
-const examRoutes = require('./routes/examRoute'); // F4
+const examRoutes = require('./routes/exam.routes'); // F4
 // const candidateRoutes  = require('./routes/candidateRoutes');  // F5
 // const sessionRoutes    = require('./routes/sessionRoutes');    // F6
 // const gradingRoutes    = require('./routes/gradingRoutes');    // F7

@@ -1,7 +1,7 @@
 const {
     createExamService,
     getAllExamsService,
-} = require('../services/examService');
+} = require('../services/exam.service');
 
 const { sendSuccess, sendError } = require('../utils/response');
 
