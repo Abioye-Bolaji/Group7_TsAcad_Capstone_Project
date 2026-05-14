@@ -1,9 +1,7 @@
 const jwt = require('jsonwebtoken');
-
 const User = require('../models/user.model');
-
+const Candidate = require('../models/candidate.model');
 const { sendError } = require('../utils/response');
-
 const BlacklistedToken = require('../models/blacklisted.token');
 
 const authMiddleware = async (req, res, next) => {
@@ -25,35 +23,39 @@ const authMiddleware = async (req, res, next) => {
             );
         }
 
-        const blacklisted = await BlacklistedToken.findOne({
-    token,
-});
+        const blacklisted = await BlacklistedToken.findOne({ token });
 
-    if (blacklisted) {
-      return sendError(
-        res,
-        'Token has been blacklisted. Please login again.',
-        401
-        );
-     }
+        if (blacklisted) {
+            return sendError(
+                res,
+                'Token has been blacklisted. Please login again.',
+                401
+            );
+        }
 
         const decoded = jwt.verify(
             token,
             process.env.JWT_SECRET
         );
 
-        const user = await User.findById(decoded.id).select('-password');
+        let user;
+
+        // NEW: Check if this is a candidate or a platform user
+        if (decoded.role === 'candidate') {
+            user = await Candidate.findById(decoded.id).select('-accessPin');
+        } else {
+            user = await User.findById(decoded.id).select('-password');
+        }
 
         if (!user) {
             return sendError(
                 res,
-                'User not found',
+                'User/Candidate not found',
                 404
             );
         }
 
         req.user = user;
-
         next();
 
     } catch (error) {
