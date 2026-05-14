@@ -1,6 +1,6 @@
 const Exam = require("../models/exam.model");
 const ExamSession = require("../models/exam-session.model");
-// const Question = require("../models/Question");
+const Question = require("../models/Question");
 
 // START SESSION
 const startExamSessionService = async ({
