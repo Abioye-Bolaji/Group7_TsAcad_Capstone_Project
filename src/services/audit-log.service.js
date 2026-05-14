@@ -1,10 +1,14 @@
-const AuditLog = require('../models/auditLog.model');
+const AuditLog = require('../models/audit-log.model');
 
+/**
+ * @desc Audit Log Service
+ * Standards: CommonJS, Tenant isolation
+ */
 
 const buildBaseQuery = (user, tenantId) =>
     user.role === 'super_admin'
-      ? {}
-      : { tenantId };
+        ? {}
+        : { tenantId };
 
 const createLog = async (data) => {
     return await AuditLog.create(data);
@@ -16,7 +20,7 @@ const getAllLogs = async ({ user, tenantId, query: q }) => {
         limit = 20,
         action,
         resource,
-        useId,
+        userId,
         startDate,
         endDate,
     } = q;
@@ -28,13 +32,13 @@ const getAllLogs = async ({ user, tenantId, query: q }) => {
     if (userId) query.userId = userId;
 
     if (startDate || endDate) {
-        query.createAt = {};
-        if (startDate) query.createAt.$gte = new Date(startDate);
-        if (endDate) query.createAt.$lte = new Date(endDate);
+        query.createdAt = {}; // Fixed typo createAt -> createdAt
+        if (startDate) query.createdAt.$gte = new Date(startDate);
+        if (endDate) query.createdAt.$lte = new Date(endDate);
     }
 
     const pageNum = Number(page);
-    const limiNum = Number(limit);
+    const limitNum = Number(limit); // Fixed typo limiNum -> limitNum
     const skip = (pageNum - 1) * limitNum;
 
     const [logs, total] = await Promise.all([
@@ -67,13 +71,14 @@ const getSecurityData = async ({ user, tenantId }) => {
     const m10 = new Date(Date.now() - 10 * 60 * 1000);
 
     const recentActivity = await AuditLog
-      .find({ ...base, createdAt: { $gte: h24 } })
-      .sort({ createdAt: -1 })
-      .limit(50)
-      .lean();
+        .find({ ...base, createdAt: { $gte: h24 } })
+        .sort({ createdAt: -1 })
+        .limit(50)
+        .lean();
+
     const recentFailedLogins = await AuditLog
-      .find({ ...base, action: 'FAILED_LOGIN', createdAt: { $gte: m10 } })
-      .lean();
+        .find({ ...base, action: 'FAILED_LOGIN', createdAt: { $gte: m10 } })
+        .lean();
 
     const ipCounts = {};
     recentFailedLogins.forEach(({ ipAddress }) => {
@@ -82,8 +87,8 @@ const getSecurityData = async ({ user, tenantId }) => {
     });
 
     const flaggedIps = Object.entries(ipCounts)
-      .filter(([, count]) => count >= 5)
-      .map(([ipCounts, failedAttempts]) => ({ ip, failedAttempts }));
+        .filter(([, count]) => count >= 5)
+        .map(([ip, failedAttempts]) => ({ ip, failedAttempts }));
 
     return {
         recentActivity,
@@ -91,7 +96,11 @@ const getSecurityData = async ({ user, tenantId }) => {
         failedLoginAttempts: recentFailedLogins.length,
         flaggedIps,
     };
-
 };
 
-module.exports = { createLog, gettAllLogs, getLogsById, getSecurityData };
+module.exports = {
+    createLog,
+    getAllLogs,
+    getLogById,
+    getSecurityData,
+};

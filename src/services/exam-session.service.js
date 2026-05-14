@@ -1,5 +1,5 @@
 const Exam = require("../models/exam.model");
-const ExamSession = require("../models/examSession.model");
+const ExamSession = require("../models/exam-session.model");
 // const Question = require("../models/Question");
 
 // START SESSION
