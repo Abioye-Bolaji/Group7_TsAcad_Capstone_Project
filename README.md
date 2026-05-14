@@ -1,94 +1,87 @@
-# Multitenancy Computer Based Test (CBT) Platform
-### Group 7 Capstone Project — TS Academy
+# Multitenancy CBT Platform
 
-A robust, scalable, and secure multitenancy platform designed to host and manage Computer Based Tests for multiple organizations (tenants). This project implements strict data isolation using a `tenantId` architecture.
+This project provides a minimal Node.js Express backend for candidate results, admin dashboards, certificate generation, and result release notifications.
 
----
+## Features
 
-## 🚀 Getting Started
+- Candidate result creation and retrieval
+- Public candidate result view page
+- Admin results dashboard with filtering and CSV export
+- UUID-based certificate code generation
+- PDF certificate generation and download
+- Public certificate verification endpoint
+- Admin result release with email notification via F10 notification utility
 
-### Prerequisites
-- Node.js (v16+)
-- MongoDB Atlas account or local MongoDB instance
-- Postman (for API testing)
+## Installation
 
-### Installation
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/Abioye-Bolaji/Group7_TsAcad_Capstone_Project.git
-   cd Group7_TsAcad_Capstone_Project
-   ```
+1. Clone or copy the repository.
+2. Install dependencies:
 
-2. **Install dependencies:**
-   ```bash
-   npm install
-   ```
-
-3. **Configure Environment Variables:**
-   - Copy the example file: `cp .env.example .env`
-   - Open `.env` and fill in your `MONGO_URI` and other secrets.
-
-4. **Run the development server:**
-   ```bash
-   npm run dev
-   ```
-   The server will start at `http://localhost:5000`
-
----
-
-## 🛠 Project Architecture
-
-### Data Isolation (The Tenant Contract)
-Every database model (except Super Admin data) **MUST** include a `tenantId` field.
-- **Middleware:** The `tenant.middleware.js` automatically extracts the `tenantId` from the authenticated user.
-- **Contract:** Teammates should refer to `TENANT_ID_CONTRACT.md` for implementation details.
-
-### Naming Conventions
-To maintain consistency, we use the following dot-notation naming convention:
-- **Controllers:** `name.controller.js`
-- **Services:** `name.service.js`
-- **Models:** `name.model.js`
-- **Routes:** `name.routes.js`
-- **Middlewares:** `name.middleware.js`
-- **Validations:** `name.validation.js`
-
----
-
-## 📂 Folder Structure
-```text
-src/
-├── config/         # Database and third-party configs
-├── controllers/    # Route handlers (Request/Response logic)
-├── middlewares/    # Custom Express middlewares (Auth, Tenant, Errors)
-├── models/         # Mongoose schemas
-├── routes/         # API Route definitions
-├── services/       # Business logic (DB queries, calculations)
-├── utils/          # Helper functions (Response handlers, tokens)
-└── validations/    # Joi/Validation schemas
+```bash
+npm install
 ```
 
----
+## Running the server
 
-## 🛣 API Roadmap (v1)
+```bash
+npm run dev
+```
 
-### 🏢 Tenant Management (F2)
-- `GET /api/v1/tenants` - List all tenants (Super Admin)
-- `POST /api/v1/tenants` - Create new tenant (Super Admin)
-- `GET /api/v1/tenants/me` - Get own tenant info (Tenant Admin)
+The server runs on `http://localhost:3000` by default.
 
-### 🔐 Auth & Authorization (F1)
-- `POST /api/v1/auth/register` - User registration
-- `POST /api/v1/auth/login` - User login
-- `POST /api/v1/auth/logout` - User logout
+## Important files
 
-### 💳 Subscription & Billing (F11)
-- `GET /api/v1/subscriptions/plans` - View plans
-- `POST /api/v1/subscriptions/assign` - Subscribe to a plan
+- `App.js` - API routes and server setup
+- `resultStore.js` - result persistence helpers using `data/results.json`
+- `certCodeGenerator.js` - unique certificate code generation and validation
+- `certificateTemplate.js` - PDF certificate generation helpers
+- `notificationUtil.js` - F10 release notification helper
 
----
+## API Endpoints
 
-## 🤝 Contributing
-1. Always pull the latest `develop` branch before starting.
-2. Create a feature branch: `feat/your-feature-name`.
-3. Follow the naming conventions listed above.
-4. Open a Pull Request into `develop` for review.
+### Public
+
+- `GET /` - health check
+- `GET /candidate-results/:candidateId/view` - HTML result page for candidate
+- `GET /api/v1/certificates/verify/:certCode` - verify certificate code and return metadata
+
+### Candidate / Results
+
+- `POST /api/results`
+  - Body: `{ candidateId, candidateName, examName, score, maxScore, email?, issuerName?, issueDate?, expiryDate?, passed?, status? }`
+  - Creates or updates a candidate result
+- `GET /api/results/:candidateId`
+  - Returns candidate result data and certificate download URL if available
+
+### Admin
+
+- `GET /api/admin/results`
+  - Supports filtering by `candidateName`, `email`, `examName`, `status`, `passed`, and `released`
+  - Supports pagination with `page` and `limit`
+- `GET /api/admin/results/dashboard`
+  - Returns summary statistics and latest results
+- `GET /api/admin/results/export/csv`
+  - Exports filtered results as CSV
+- `POST /api/admin/results/:candidateId/release`
+  - Marks a candidate result as released and sends an email notification if email is present
+- `POST /api/admin/results/:candidateId/certificate`
+  - Generates a PDF certificate for a passed candidate
+- `GET /api/admin/results/:candidateId/certificate/download`
+  - Downloads the PDF certificate directly
+
+## Data Storage
+
+Results are stored in `data/results.json` as a simple JSON array. This project does not use a database by default.
+
+## Environment
+
+- `APP_BASE_URL` - optional base URL used in notification emails
+
+## Notes
+
+- Certificate PDF files are saved in the `certificates/` folder.
+- Email notifications require the `@f10/notification` package and a valid F10 notification provider configuration.
+
+## License
+
+This project is provided as-is.

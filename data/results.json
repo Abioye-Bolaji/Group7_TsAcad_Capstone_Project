@@ -1,0 +1,23 @@
+[
+  {
+    "id": "result_f247cd33-4043-49b1-b977-ee9ca3722435",
+    "candidateId": "c123",
+    "candidateName": "Test User",
+    "email": "",
+    "examName": "Demo Exam",
+    "score": 85,
+    "maxScore": 100,
+    "percentage": 85,
+    "grade": "B",
+    "status": "Passed",
+    "passed": true,
+    "completionDate": "2026-05-14T15:09:24.456Z",
+    "issuerName": "Certificate Authority",
+    "issueDate": "2026-05-14T15:09:24.456Z",
+    "expiryDate": null,
+    "certificateCode": null,
+    "certificateFile": null,
+    "createdAt": "2026-05-14T15:09:24.456Z",
+    "updatedAt": "2026-05-14T15:09:24.456Z"
+  }
+]
