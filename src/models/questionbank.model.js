@@ -49,6 +49,11 @@ const questionBankSchema = new mongoose.Schema(
             trim: true,
         },
 
+        imageUrl: {
+            type: String,
+            trim: true,
+        },
+
         options: {
             type: [optionSchema],
             validate: {
@@ -62,7 +67,7 @@ const questionBankSchema = new mongoose.Schema(
             type: String,
             enum: ['easy', 'medium', 'hard'],
         },
-        
+
         /**
          * Track creator
          */
@@ -78,7 +83,27 @@ const questionBankSchema = new mongoose.Schema(
             type: Boolean,
             default: false,
         },
+
+        searchandfilter: {
+            type: String,
+        },
+
+        version: {
+            type: Number,
+            default: 1,
+        },
+
+        isLocked: {
+            type: Boolean,
+            default: false,
+        },
+
+        parentQuestionId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'QuestionBank',
+        },
     },
+
     {
         timestamps: true,
     }

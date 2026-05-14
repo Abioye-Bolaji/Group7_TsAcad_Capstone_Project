@@ -7,15 +7,15 @@ const { sendError, sendSuccess } = require('../utils/response');
  * Handles HTTP requests related to question banks.
  * All business logic lives in the corresponding service layer.
  *
- * Author: [Your Name]
- * Date: [Date]
+ * Author: Tobiloba Obiyomi
+ * Date: 13-05-2026
  */
 
 // create a new question in the tenant's question bank
 
 exports.createQuestion = async (req, res) => {
     try {
-        const { questionText, options, difficulty } = req.body;
+        const { questionText, options, difficulty, subjectId, questionType, topic, tag } = req.body;
         const tenantId = req.tenantId; // Set by tenant middleware
 
         // Validate tenant existence (optional, since tenant middleware should have done this)
@@ -29,6 +29,10 @@ exports.createQuestion = async (req, res) => {
             questionText,
             options,
             difficulty,
+            subjectId,
+            questionType,
+            topic,
+            tag,
         });
         await question.save();
         return sendSuccess(res, 'Question created successfully', question, 201);
@@ -43,7 +47,29 @@ exports.createQuestion = async (req, res) => {
 exports.getQuestions = async (req, res) => {
     try {
         const tenantId = req.tenantId; // Set by tenant middleware
-        const questions = await QuestionBank.find({ tenantId }).lean();
+        const filters = { tenantId };
+        if (req.query.difficulty) {
+            filters.difficulty = req.query.difficulty;
+        }
+        if (req.query.subjectId) {
+            filters.subjectId = req.query.subjectId;
+        }
+        if (req.query.questionType) {
+            filters.questionType = req.query.questionType;
+        }
+        if (req.query.topic) {
+            filters.topic = req.query.topic;
+        }
+        if (req.query.tag) {
+            filters.tag = req.query.tag;
+        }
+        if (req.query.search) {
+            filters.questionText = {
+                $regex: req.query.search,
+                $options: 'i',
+            };
+        }
+        const questions = await QuestionBank.countDocuments(filters).lean();
         return sendSuccess(res, 'Questions fetched successfully', questions, 200);
     } catch (error) {
         console.error('getQuestions error:', error);
