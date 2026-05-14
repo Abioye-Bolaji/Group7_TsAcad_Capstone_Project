@@ -1,7 +1,11 @@
 const Subscription = require('../models/subscription.model');
 const SubscriptionPlan = require('../models/subscription-plan.model');
 const BillingHistory = require('../models/billing-history.model');
+const UsageTracking = require('../models/usage-tracking.model');
 const mongoose = require('mongoose');
+
+// Import subscription service for renewal operations
+const subscriptionService = require('./subscription.service');
 
 /**
  * @desc Billing Service
@@ -80,9 +84,24 @@ class BillingService {
      * Scoped by tenantId
      * @param {String} tenantId - Tenant ID
      * @returns {Object} Usage data
+     * @throws {Error} If usage tracking not found or database error
      */
     async getUsageTracking(tenantId) {
-        return await UsageTracking.findOne({ tenantId }).lean();
+        try {
+            if (!tenantId) {
+                throw new Error('tenantId is required');
+            }
+
+            const usage = await UsageTracking.findOne({ tenantId }).lean();
+            
+            if (!usage) {
+                throw new Error(`Usage tracking not found for tenant ${tenantId}`);
+            }
+
+            return usage;
+        } catch (error) {
+            throw new Error(`Failed to get usage tracking: ${error.message}`);
+        }
     }
 
     /**
@@ -107,27 +126,44 @@ class BillingService {
      * Scoped by tenantId
      * @param {String} tenantId - Tenant ID
      * @param {Number} count - Number of exams to add (default 1)
+     * @returns {Object} Updated usage tracking
+     * @throws {Error} If validation fails or database error
      */
     async incrementExamsThisMonth(tenantId, count = 1) {
-        const currentMonth = this._getMonthYear();
+        try {
+            if (!tenantId) {
+                throw new Error('tenantId is required');
+            }
 
-        const usage = await UsageTracking.findOne({ tenantId });
+            if (!Number.isInteger(count) || count < 0) {
+                throw new Error('count must be a positive integer');
+            }
 
-        // Check if we need to reset the month counter
-        const needsReset = !usage.examsRunThisMonth.monthYear ||
-            usage.examsRunThisMonth.monthYear !== currentMonth;
+            const currentMonth = this._getMonthYear();
+            const usage = await UsageTracking.findOne({ tenantId });
 
-        if (needsReset) {
-            usage.examsRunThisMonth.count = count;
-            usage.examsRunThisMonth.monthYear = currentMonth;
-        } else {
-            usage.examsRunThisMonth.count += count;
+            if (!usage) {
+                throw new Error(`Usage tracking not found for tenant ${tenantId}`);
+            }
+
+            // Check if we need to reset the month counter
+            const needsReset = !usage.examsRunThisMonth.monthYear ||
+                usage.examsRunThisMonth.monthYear !== currentMonth;
+
+            if (needsReset) {
+                usage.examsRunThisMonth.count = count;
+                usage.examsRunThisMonth.monthYear = currentMonth;
+            } else {
+                usage.examsRunThisMonth.count += count;
+            }
+
+            usage.examsRunThisMonth.lastUpdated = new Date();
+            usage.totalExamsAllTime += count;
+
+            return await usage.save();
+        } catch (error) {
+            throw new Error(`Failed to increment exams: ${error.message}`);
         }
-
-        usage.examsRunThisMonth.lastUpdated = new Date();
-        usage.totalExamsAllTime += count;
-
-        return await usage.save();
     }
 
     /**
@@ -152,26 +188,43 @@ class BillingService {
      * Scoped by tenantId
      * @param {String} tenantId - Tenant ID
      * @param {Number} count - Number of calls to add (default 1)
+     * @returns {Object} Updated usage tracking
+     * @throws {Error} If validation fails or database error
      */
     async incrementApiCalls(tenantId, count = 1) {
-        const currentMonth = this._getMonthYear();
+        try {
+            if (!tenantId) {
+                throw new Error('tenantId is required');
+            }
 
-        const usage = await UsageTracking.findOne({ tenantId });
+            if (!Number.isInteger(count) || count < 0) {
+                throw new Error('count must be a positive integer');
+            }
 
-        // Check if we need to reset the month counter
-        const needsReset = !usage.apiCallsThisMonth.monthYear ||
-            usage.apiCallsThisMonth.monthYear !== currentMonth;
+            const currentMonth = this._getMonthYear();
+            const usage = await UsageTracking.findOne({ tenantId });
 
-        if (needsReset) {
-            usage.apiCallsThisMonth.count = count;
-            usage.apiCallsThisMonth.monthYear = currentMonth;
-        } else {
-            usage.apiCallsThisMonth.count += count;
+            if (!usage) {
+                throw new Error(`Usage tracking not found for tenant ${tenantId}`);
+            }
+
+            // Check if we need to reset the month counter
+            const needsReset = !usage.apiCallsThisMonth.monthYear ||
+                usage.apiCallsThisMonth.monthYear !== currentMonth;
+
+            if (needsReset) {
+                usage.apiCallsThisMonth.count = count;
+                usage.apiCallsThisMonth.monthYear = currentMonth;
+            } else {
+                usage.apiCallsThisMonth.count += count;
+            }
+
+            usage.apiCallsThisMonth.lastUpdated = new Date();
+
+            return await usage.save();
+        } catch (error) {
+            throw new Error(`Failed to increment API calls: ${error.message}`);
         }
-
-        usage.apiCallsThisMonth.lastUpdated = new Date();
-
-        return await usage.save();
     }
 
     /**
@@ -179,86 +232,117 @@ class BillingService {
      * Scoped by tenantId
      * @param {String} tenantId - Tenant ID
      * @returns {Object} { exceeded, limits, usage }
+     * @throws {Error} If validation fails or database error
      */
     async checkUsageLimits(tenantId) {
-        const subscription = await Subscription.findOne({
-            tenantId,
-            status: 'active',
-        }).populate('planId');
+        try {
+            if (!tenantId) {
+                throw new Error('tenantId is required');
+            }
 
-        if (!subscription) {
-            return { exceeded: true, reason: 'No active subscription' };
+            const subscription = await Subscription.findOne({
+                tenantId,
+                status: 'active',
+            }).populate('planId');
+
+            if (!subscription) {
+                return { exceeded: true, reason: 'No active subscription' };
+            }
+
+            const usage = await UsageTracking.findOne({ tenantId });
+
+            if (!usage) {
+                throw new Error(`Usage tracking not found for tenant ${tenantId}`);
+            }
+
+            const plan = subscription.planId;
+
+            if (!plan || !plan.features) {
+                throw new Error('Subscription plan data is invalid');
+            }
+
+            const limits = {
+                maxActiveCandidates: plan.features.maxActiveCandidates,
+                maxExamsPerMonth: plan.features.maxExamsPerMonth,
+                maxStorageGB: plan.features.maxStorageGB,
+            };
+
+            const exceeded = {
+                activeCandidates: usage.activeCandidates.count >
+                    limits.maxActiveCandidates,
+                examsPerMonth: usage.examsRunThisMonth.count >
+                    limits.maxExamsPerMonth,
+                storage: usage.storageUsedGB > limits.maxStorageGB,
+            };
+
+            return {
+                exceeded: Object.values(exceeded).some(v => v),
+                limits,
+                usage: {
+                    activeCandidates: usage.activeCandidates.count,
+                    examsPerMonth: usage.examsRunThisMonth.count,
+                    storage: usage.storageUsedGB,
+                },
+                exceededItems: Object.entries(exceeded)
+                    .filter(([, v]) => v)
+                    .map(([k]) => k),
+            };
+        } catch (error) {
+            throw new Error(`Failed to check usage limits: ${error.message}`);
         }
-
-        const usage = await UsageTracking.findOne({ tenantId });
-        const plan = subscription.planId;
-
-        const limits = {
-            maxActiveCandidates: plan.features.maxActiveCandidates,
-            maxExamsPerMonth: plan.features.maxExamsPerMonth,
-            maxStorageGB: plan.features.maxStorageGB,
-        };
-
-        const exceeded = {
-            activeCandidates: usage.activeCandidates.count >
-                limits.maxActiveCandidates,
-            examsPerMonth: usage.examsRunThisMonth.count >
-                limits.maxExamsPerMonth,
-            storage: usage.storageUsedGB > limits.maxStorageGB,
-        };
-
-        return {
-            exceeded: Object.values(exceeded).some(v => v),
-            limits,
-            usage: {
-                activeCandidates: usage.activeCandidates.count,
-                examsPerMonth: usage.examsRunThisMonth.count,
-                storage: usage.storageUsedGB,
-            },
-            exceededItems: Object.entries(exceeded)
-                .filter(([, v]) => v)
-                .map(([k]) => k),
-        };
     }
 
     /**
      * Get billing summary for a tenant
      * @param {String} tenantId - Tenant ID
      * @returns {Object} Summary stats
+     * @throws {Error} If validation fails or database error
      */
     async getBillingSummary(tenantId) {
-        const subscription = await Subscription.findOne({ tenantId })
-            .populate('planId');
+        try {
+            if (!tenantId) {
+                throw new Error('tenantId is required');
+            }
 
-        const usage = await UsageTracking.findOne({ tenantId });
+            const subscription = await Subscription.findOne({ tenantId })
+                .populate('planId');
 
-        const [paidInvoices, pendingInvoices, failedInvoices] = await Promise.all([
-            BillingHistory.countDocuments({ tenantId, status: 'paid' }),
-            BillingHistory.countDocuments({ tenantId, status: { $in: ['pending', 'sent'] } }),
-            BillingHistory.countDocuments({ tenantId, status: 'failed' }),
-        ]);
+            const usage = await UsageTracking.findOne({ tenantId });
 
-        const totalRevenue = await BillingHistory.aggregate([
-            { $match: { tenantId: new mongoose.Types.ObjectId(tenantId), status: 'paid' } },
-            { $group: { _id: null, total: { $sum: '$totalAmount' } } },
-        ]);
+            if (!usage) {
+                throw new Error(`Usage tracking not found for tenant ${tenantId}`);
+            }
 
-        return {
-            subscription: {
-                plan: subscription?.planId?.name || 'None',
-                status: subscription?.status || 'inactive',
-                startDate: subscription?.startDate,
-                endDate: subscription?.endDate,
-                autoRenew: subscription?.autoRenew,
-            },
-            invoices: {
-                paid: paidInvoices,
-                pending: pendingInvoices,
-                failed: failedInvoices,
-            },
-            totalRevenue: totalRevenue[0]?.total || 0,
-            usage,
-        };
+            const [paidInvoices, pendingInvoices, failedInvoices] = await Promise.all([
+                BillingHistory.countDocuments({ tenantId, status: 'paid' }),
+                BillingHistory.countDocuments({ tenantId, status: { $in: ['pending', 'sent'] } }),
+                BillingHistory.countDocuments({ tenantId, status: 'failed' }),
+            ]);
+
+            const totalRevenue = await BillingHistory.aggregate([
+                { $match: { tenantId: new mongoose.Types.ObjectId(tenantId), status: 'paid' } },
+                { $group: { _id: null, total: { $sum: '$totalAmount' } } },
+            ]);
+
+            return {
+                subscription: {
+                    plan: subscription?.planId?.name || 'None',
+                    status: subscription?.status || 'inactive',
+                    startDate: subscription?.startDate,
+                    endDate: subscription?.endDate,
+                    autoRenew: subscription?.autoRenew,
+                },
+                invoices: {
+                    paid: paidInvoices,
+                    pending: pendingInvoices,
+                    failed: failedInvoices,
+                },
+                totalRevenue: totalRevenue[0]?.total || 0,
+                usage,
+            };
+        } catch (error) {
+            throw new Error(`Failed to get billing summary: ${error.message}`);
+        }
     }
 
     /**
@@ -310,29 +394,35 @@ class BillingService {
      * @returns {Object} { renewed, failed }
      */
     async processSubscriptionRenewals() {
-        const expiringSubscriptions = await Subscription.find({
-            status: 'active',
-            autoRenew: true,
-            endDate: {
-                $gte: new Date(),
-                $lte: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000), // Next 24 hours
-            },
-        }).lean();
+        try {
+            const expiringSubscriptions = await Subscription.find({
+                status: 'active',
+                autoRenew: true,
+                endDate: {
+                    $gte: new Date(),
+                    $lte: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000), // Next 24 hours
+                },
+            }).lean();
 
-        const results = { renewed: 0, failed: 0 };
+            const results = { renewed: 0, failed: 0 };
 
-        for (const subscription of expiringSubscriptions) {
-            try {
-                // TODO: Trigger renewal process
-                // await subscriptionService.renewSubscription(subscription.tenantId)
-                results.renewed += 1;
-            } catch (error) {
-                console.error(`Failed to renew subscription ${subscription._id}:`, error);
-                results.failed += 1;
+            for (const subscription of expiringSubscriptions) {
+                try {
+                    // Trigger renewal process
+                    await subscriptionService.renewSubscription(subscription.tenantId);
+                    results.renewed += 1;
+                    console.log(`Successfully renewed subscription for tenant ${subscription.tenantId}`);
+                } catch (error) {
+                    console.error(`Failed to renew subscription ${subscription._id}:`, error.message);
+                    results.failed += 1;
+                }
             }
-        }
 
-        return results;
+            return results;
+        } catch (error) {
+            console.error('Failed to process subscription renewals:', error.message);
+            throw new Error(`Failed to process subscription renewals: ${error.message}`);
+        }
     }
 
     /**
