@@ -25,7 +25,7 @@ const {
  * @access Super Admin only
  * @desc   Create a new tenant (onboard a new organisation)
  */
-const createTenant = async (req, res) => {
+const createTenant = async (req, res, next) => {
     try {
         const errors = validateBody(createTenantSchema, req.body);
         if (errors) return sendError(res, 'Validation failed', 400, errors);
@@ -39,8 +39,7 @@ const createTenant = async (req, res) => {
             const field = Object.keys(error.keyPattern)[0];
             return sendError(res, `A tenant with this ${field} already exists.`, 409);
         }
-        console.error('createTenant error:', error);
-        return sendError(res, 'Failed to create tenant', 500);
+        next(error);
     }
 };
 
@@ -50,7 +49,7 @@ const createTenant = async (req, res) => {
  * @access Super Admin only
  * @desc   List all tenants with optional filters (status, plan) and pagination
  */
-const getAllTenants = async (req, res) => {
+const getAllTenants = async (req, res, next) => {
     try {
         const { status, plan, page, limit } = req.query;
         const result = await tenantService.getAllTenants({ status, plan, page, limit });
@@ -63,8 +62,7 @@ const getAllTenants = async (req, res) => {
             result.pagination
         );
     } catch (error) {
-        console.error('getAllTenants error:', error);
-        return sendError(res, 'Failed to fetch tenants', 500);
+        next(error);
     }
 };
 
@@ -74,13 +72,12 @@ const getAllTenants = async (req, res) => {
  * @access Super Admin only
  * @desc   Platform-wide tenant usage statistics
  */
-const getTenantStats = async (req, res) => {
+const getTenantStats = async (req, res, next) => {
     try {
         const stats = await tenantService.getTenantStats();
         return sendSuccess(res, 'Tenant statistics fetched successfully', stats);
     } catch (error) {
-        console.error('getTenantStats error:', error);
-        return sendError(res, 'Failed to fetch tenant statistics', 500);
+        next(error);
     }
 };
 
@@ -90,15 +87,14 @@ const getTenantStats = async (req, res) => {
  * @access Super Admin only
  * @desc   Get a single tenant by MongoDB _id OR slug
  */
-const getTenantById = async (req, res) => {
+const getTenantById = async (req, res, next) => {
     try {
         const tenant = await tenantService.getTenantById(req.params.identifier);
         if (!tenant) return sendError(res, 'Tenant not found', 404);
 
         return sendSuccess(res, 'Tenant fetched successfully', tenant);
     } catch (error) {
-        console.error('getTenantById error:', error);
-        return sendError(res, 'Failed to fetch tenant', 500);
+        next(error);
     }
 };
 
@@ -108,7 +104,7 @@ const getTenantById = async (req, res) => {
  * @access Super Admin only
  * @desc   Update a tenant's profile information
  */
-const updateTenant = async (req, res) => {
+const updateTenant = async (req, res, next) => {
     try {
         const errors = validateBody(updateTenantSchema, req.body);
         if (errors) return sendError(res, 'Validation failed', 400, errors);
@@ -122,8 +118,7 @@ const updateTenant = async (req, res) => {
             const field = Object.keys(error.keyPattern)[0];
             return sendError(res, `A tenant with this ${field} already exists.`, 409);
         }
-        console.error('updateTenant error:', error);
-        return sendError(res, 'Failed to update tenant', 500);
+        next(error);
     }
 };
 
@@ -133,15 +128,14 @@ const updateTenant = async (req, res) => {
  * @access Super Admin only
  * @desc   Suspend a tenant — immediately blocks their API access
  */
-const suspendTenant = async (req, res) => {
+const suspendTenant = async (req, res, next) => {
     try {
         const tenant = await tenantService.suspendTenant(req.params.id);
         if (!tenant) return sendError(res, 'Tenant not found', 404);
 
         return sendSuccess(res, `Tenant "${tenant.name}" has been suspended.`, tenant);
     } catch (error) {
-        console.error('suspendTenant error:', error);
-        return sendError(res, 'Failed to suspend tenant', 500);
+        next(error);
     }
 };
 
@@ -151,15 +145,14 @@ const suspendTenant = async (req, res) => {
  * @access Super Admin only
  * @desc   Reactivate a suspended or inactive tenant
  */
-const reactivateTenant = async (req, res) => {
+const reactivateTenant = async (req, res, next) => {
     try {
         const tenant = await tenantService.reactivateTenant(req.params.id);
         if (!tenant) return sendError(res, 'Tenant not found', 404);
 
         return sendSuccess(res, `Tenant "${tenant.name}" has been reactivated.`, tenant);
     } catch (error) {
-        console.error('reactivateTenant error:', error);
-        return sendError(res, 'Failed to reactivate tenant', 500);
+        next(error);
     }
 };
 
@@ -169,15 +162,14 @@ const reactivateTenant = async (req, res) => {
  * @access Super Admin only
  * @desc   Permanently delete a tenant (irreversible)
  */
-const deleteTenant = async (req, res) => {
+const deleteTenant = async (req, res, next) => {
     try {
         const result = await tenantService.deleteTenant(req.params.id);
         if (!result) return sendError(res, 'Tenant not found', 404);
 
         return sendSuccess(res, 'Tenant permanently deleted.', null, 200);
     } catch (error) {
-        console.error('deleteTenant error:', error);
-        return sendError(res, 'Failed to delete tenant', 500);
+        next(error);
     }
 };
 
@@ -187,7 +179,7 @@ const deleteTenant = async (req, res) => {
  * @access Super Admin only
  * @desc   Upgrade or downgrade a tenant's subscription plan
  */
-const upgradeTenantPlan = async (req, res) => {
+const upgradeTenantPlan = async (req, res, next) => {
     try {
         const errors = validateBody(upgradePlanSchema, req.body);
         if (errors) return sendError(res, 'Validation failed', 400, errors);
@@ -197,8 +189,7 @@ const upgradeTenantPlan = async (req, res) => {
 
         return sendSuccess(res, `Tenant plan updated to "${req.body.plan}".`, tenant);
     } catch (error) {
-        console.error('upgradeTenantPlan error:', error);
-        return sendError(res, 'Failed to update tenant plan', 500);
+        next(error);
     }
 };
 
@@ -211,7 +202,7 @@ const upgradeTenantPlan = async (req, res) => {
  * @access Tenant Admin (their own tenant)
  * @desc   Get the currently logged-in admin's own tenant profile
  */
-const getMyTenant = async (req, res) => {
+const getMyTenant = async (req, res, next) => {
     try {
         // req.tenantId is stamped by the tenant middleware — always safe
         const tenant = await tenantService.getTenantById(req.tenantId);
@@ -219,8 +210,7 @@ const getMyTenant = async (req, res) => {
 
         return sendSuccess(res, 'Your tenant profile fetched successfully', tenant);
     } catch (error) {
-        console.error('getMyTenant error:', error);
-        return sendError(res, 'Failed to fetch your tenant', 500);
+        next(error);
     }
 };
 
@@ -230,7 +220,7 @@ const getMyTenant = async (req, res) => {
  * @access Tenant Admin (their own tenant only)
  * @desc   Update the settings for the current tenant (logo, features, limits etc.)
  */
-const updateMyTenantSettings = async (req, res) => {
+const updateMyTenantSettings = async (req, res, next) => {
     try {
         const errors = validateBody(updateSettingsSchema, req.body);
         if (errors) return sendError(res, 'Validation failed', 400, errors);
@@ -241,8 +231,7 @@ const updateMyTenantSettings = async (req, res) => {
 
         return sendSuccess(res, 'Tenant settings updated successfully', tenant);
     } catch (error) {
-        console.error('updateMyTenantSettings error:', error);
-        return sendError(res, 'Failed to update tenant settings', 500);
+        next(error);
     }
 };
 

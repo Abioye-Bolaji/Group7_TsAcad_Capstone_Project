@@ -90,11 +90,19 @@ const tenantSchema = new mongoose.Schema(
             default: 'active',
         },
 
-        // ─── Subscription Plan ─────────────────────────────────────
+         //Subscription Plan
+        // Legacy string field for backward compatibility
         plan: {
             type: String,
             enum: ['free', 'basic', 'pro'],
             default: 'free',
+        },
+
+        //Current Subscription Reference
+        subscriptionId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Subscription',
+            default: null,
         },
 
         // ─── Tenant Settings (embedded) ────────────────────────────

@@ -45,9 +45,27 @@ const { sendError } = require('../utils/response');
  *
  * ─────────────────────────────────────────────────────────────
  */
-
+        
 const tenantMiddleware = async (req, res, next) => {
     try {
+        // PUBLIC AUTH ROUTES
+        const publicRoutes = [
+            '/api/v1/auth/login',
+            '/api/v1/auth/register',
+            '/api/v1/auth/forgot-password',
+        ];
+
+        const path = req.originalUrl;
+
+        if (
+            path.startsWith('/api/v1/auth/verify-email') ||
+            path.startsWith('/api/v1/auth/reset-password') ||
+            path.startsWith('/api/v1/auth/refresh-token') ||
+            publicRoutes.includes(path)
+        ) {
+            return next();
+        }
+
         // ── STEP 1: Super Admin Bypass ─────────────────────────────────
         // Super Admins manage ALL tenants — they don't belong to one tenant.
         // Skip scoping so they can reach platform-wide admin routes.
