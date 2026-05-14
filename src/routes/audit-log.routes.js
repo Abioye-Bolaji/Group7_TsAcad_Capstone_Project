@@ -7,14 +7,14 @@ const {
     getSecurityDashboard,
 } = require('../controllers/audit-log.controller');
 const authMiddleware = require('../middlewares/auth.middleware');
+const tenantMiddleware = require('../middlewares/tenant.middleware');
 
 /**
  * @desc Audit Log Routes
- * Scoped by tenantId via tenantMiddleware in app.js
  */
 
-router.get('/security', authMiddleware, getSecurityDashboard);
-router.get('/', authMiddleware, getAuditLogs);
-router.get('/:id', authMiddleware, getAuditLogById);
+router.get('/security', authMiddleware, tenantMiddleware, getSecurityDashboard);
+router.get('/', authMiddleware, tenantMiddleware, getAuditLogs);
+router.get('/:id', authMiddleware, tenantMiddleware, getAuditLogById);
 
 module.exports = router;

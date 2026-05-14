@@ -63,11 +63,9 @@ if (process.env.NODE_ENV !== "production") {
   });
 }
 
-// ─── 5. Tenant Isolation Middleware ───────────────────────────────────────────
-// All routes BELOW this line are tenant-scoped.
-app.use(tenantMiddleware);
-
 // ─── 5. Protected API Routes ──────────────────────────────────────────────────
+// Note: tenantMiddleware is now applied within individual route files 
+// AFTER authMiddleware to ensure correct context.
 app.use('/api/v1/tenants', tenantRoutes);
 app.use('/api/v1/candidates', candidateRoutes);  // F5
 app.use('/api/v1/candidate-groups', candidateGroupRoutes);    // F5
