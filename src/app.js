@@ -14,8 +14,9 @@ const tenantRoutes = require('./routes/tenant.routes');
 // Future routes (added by teammates as they complete their features):
 // const questionRoutes   = require('./routes/questionRoutes');   // F3
 const examRoutes = require('./routes/exam.routes'); // F4
-// const candidateRoutes  = require('./routes/candidateRoutes');  // F5
-// const sessionRoutes    = require('./routes/sessionRoutes');    // F6
+const candidateRoutes  = require('./routes/candidate.routes');  // F5
+const candidateGroupRoutes = require('./routes/candidateGroup.routes');  // F5
+const sessionRoutes = require('./routes/examSession.router');    // F6
 // const gradingRoutes    = require('./routes/gradingRoutes');    // F7
 // const resultsRoutes    = require('./routes/resultsRoutes');    // F8
 // const analyticsRoutes  = require('./routes/analyticsRoutes'); // F9
@@ -77,16 +78,18 @@ if (process.env.NODE_ENV !== "production") {
 // ─── 5. Tenant Isolation Middleware ───────────────────────────────────────────
 // All routes BELOW this line are tenant-scoped.
 // req.tenantId and req.tenant are available to every controller from here down.
-app.use(tenantMiddleware);
+
 
 // ─── 5. Protected API Routes ──────────────────────────────────────────────────
-app.use("/api/v1/tenants", tenantRoutes);
+app.use(tenantMiddleware);
+app.use('/api/v1/tenants', tenantRoutes);
+app.use('/api/v1/candidates', candidateRoutes);  // F5
+app.use('/api/v1/candidate-groups', candidateGroupRoutes);    //F5
 
 // Teammates: uncomment your routes below as you complete your features:
 // app.use('/api/v1/questions',    questionRoutes);
 app.use('/api/v1/exams', examRoutes);
-// app.use('/api/v1/candidates',   candidateRoutes);
-// app.use('/api/v1/sessions',     sessionRoutes);
+app.use('/api/v1/sessions',     sessionRoutes);
 // app.use('/api/v1/scores',       gradingRoutes);
 // app.use('/api/v1/results',      resultsRoutes);
 // app.use('/api/v1/analytics',    analyticsRoutes);
