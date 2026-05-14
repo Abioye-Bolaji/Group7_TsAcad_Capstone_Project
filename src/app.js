@@ -25,6 +25,8 @@ const auditRoutes = require('./routes/audit-log.routes'); // F12
 // const notifyRoutes     = require('./routes/notifyRoutes');     // F10
 // const searchRoutes     = require('./routes/searchRoutes');     // F14
 
+const questionRoutes = require('./routes/questionbank.routes');
+
 const app = express();
 
 // ─── 1. Global Middlewares ────────────────────────────────────────────────────
@@ -73,6 +75,9 @@ app.use('/api/v1/exams', examRoutes);
 app.use('/api/v1/sessions', sessionRoutes);
 app.use('/api/v1/billing', billingRoutes); // F11
 app.use('/api/v1/audit', auditRoutes); // F12
+app.use('/api/v1/questions', questionRoutes); // F3
+
+// Future protected routes (add as teammates complete their features):
 
 // ─── 6. 404 Handler ───────────────────────────────────────────────────────────
 app.use((req, res) => {
