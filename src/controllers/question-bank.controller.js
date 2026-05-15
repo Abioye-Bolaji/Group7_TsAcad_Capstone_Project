@@ -1,4 +1,4 @@
-const QuestionBank = require('../models/questionbank.model');
+const QuestionBank = require('../models/question-bank.model');
 const Tenant = require('../models/tenant.model');
 const { sendError, sendSuccess } = require('../utils/response');
 

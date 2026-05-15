@@ -25,7 +25,8 @@ const auditRoutes = require('./routes/audit-log.routes'); // F12
 // const notifyRoutes     = require('./routes/notifyRoutes');     // F10
 // const searchRoutes     = require('./routes/searchRoutes');     // F14
 
-const questionRoutes = require('./routes/questionbank.routes');
+const questionRoutes = require('./routes/question-bank.routes');
+const resultRoutes = require('./routes/result.routes'); // F8
 
 const app = express();
 
@@ -76,6 +77,7 @@ app.use('/api/v1/sessions', sessionRoutes);
 app.use('/api/v1/billing', billingRoutes); // F11
 app.use('/api/v1/audit', auditRoutes); // F12
 app.use('/api/v1/questions', questionRoutes); // F3
+app.use('/api/v1/results', resultRoutes); // F8
 
 // Future protected routes (add as teammates complete their features):
 

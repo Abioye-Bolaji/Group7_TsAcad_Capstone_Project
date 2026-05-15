@@ -30,13 +30,6 @@ const questionBankSchema = new mongoose.Schema(
             index: true, // For faster queries by tenantId
         },
 
-        studentId: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'Student',
-            required: true,
-            index: true, // For faster queries by studentId
-        },
-
         questionType:{
             type: String,
             enum: ['multiple-choice', 'true-false', 'short-answer'],
