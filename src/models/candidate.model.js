@@ -69,6 +69,10 @@ const candidateSchema = new mongoose.Schema({
             ref: 'CandidateGroup'
         }
     ],
+    role: {
+        type: String,
+        default: 'candidate'
+    },
     status: {
         type: String,
         enum: ['active', 'inactive', 'suspended'],

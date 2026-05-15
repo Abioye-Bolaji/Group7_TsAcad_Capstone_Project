@@ -2,7 +2,7 @@ const bcrypt = require('bcryptjs');
 const mongoose = require('mongoose');
 const jwt = require('jsonwebtoken');
 const Candidate = require('../models/candidate.model');
-const CandidateGroup = require('../models/candidateGroup.model');
+const CandidateGroup = require('../models/candidate-group.model');
 
 /**
  * @desc Candidate Service — Business Logic Layer
