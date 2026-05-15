@@ -104,6 +104,6 @@ const resultSchema = new mongoose.Schema(
 // Index for fast lookups
 resultSchema.index({ tenantId: 1, candidateId: 1 });
 resultSchema.index({ tenantId: 1, examId: 1 });
-resultSchema.index({ certificateCode: 1 });
+// resultSchema.index({ certificateCode: 1 });
 
 module.exports = mongoose.model('Result', resultSchema);
