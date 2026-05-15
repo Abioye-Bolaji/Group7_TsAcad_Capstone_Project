@@ -16,16 +16,7 @@ const candidateRoutes  = require('./routes/candidate.routes');  // F5
 const candidateGroupRoutes = require('./routes/candidate-group.routes');  // F5
 const sessionRoutes = require('./routes/exam-session.routes');    // F6
 const auditRoutes = require('./routes/audit-log.routes'); // F12
-
-// Future routes (added by teammates as they complete their features):
-// const questionRoutes   = require('./routes/questionRoutes');   // F3
-// const gradingRoutes    = require('./routes/gradingRoutes');    // F7
-// const resultsRoutes    = require('./routes/resultsRoutes');    // F8
-// const analyticsRoutes  = require('./routes/analyticsRoutes'); // F9
-// const notifyRoutes     = require('./routes/notifyRoutes');     // F10
-// const searchRoutes     = require('./routes/searchRoutes');     // F14
-
-const questionRoutes = require('./routes/questionbank.routes');
+const questionRoutes = require('./routes/question-bank.routes'); // F3
 
 const app = express();
 

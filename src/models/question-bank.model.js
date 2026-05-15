@@ -1,3 +1,4 @@
+const { required } = require('joi');
 const mongoose = require('mongoose');
 
 /**
@@ -51,7 +52,7 @@ const questionBankSchema = new mongoose.Schema(
 
         imageUrl: {
             type: String,
-            trim: true,
+            required: true,
         },
 
         options: {
