@@ -87,7 +87,7 @@ const usageTrackingSchema = new mongoose.Schema(
 );
 
 // Indexes for quick lookups
-usageTrackingSchema.index({ tenantId: 1 });
+// usageTrackingSchema.index({ tenantId: 1 });
 usageTrackingSchema.index({ 'examsRunThisMonth.monthYear': 1 });
 usageTrackingSchema.index({ 'apiCallsThisMonth.monthYear': 1 });
 
