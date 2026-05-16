@@ -78,6 +78,12 @@ const candidateSchema = new mongoose.Schema({
         enum: ['active', 'inactive', 'suspended'],
         default: 'active'
     },
+    // Notification preference F10
+    notificationPreferences: {
+        examScheduled: { type: Boolean, default: true },
+        examReminder: { type: Boolean, default: true },
+        resultsReleased: { type: Boolean, default: true }
+    },
     createdBy: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
