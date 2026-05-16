@@ -34,4 +34,20 @@ router.post(
     notificationController.createManualNotification
 );
 
+/**
+ * POST /api/v1/notifications/bulk
+ * Restricted: Only admins or examiners can send bulk notifications.
+ */
+router.post(
+    '/bulk',
+    authorizeRoles('super_admin', 'tenant_admin', 'examiner'),
+    notificationController.createBatchNotification
+);
+
+/**
+ * POST /api/v1/notifications/preferences
+ * Candidates to manage their own alert choices.
+ */
+router.patch('/preferences', notificationController.updateMyPreferences);
+
 module.exports = router;

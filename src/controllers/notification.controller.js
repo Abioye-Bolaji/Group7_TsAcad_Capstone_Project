@@ -1,6 +1,7 @@
 const notificationService = require('../services/notification.service');
 const { sendSuccess, sendError } = require('../utils/response');
-const { createNotificationSchema, validateBody } = require('../validations/notification.validation');
+const { createNotificationSchema, batchNotificationSchema, validateBody } = require('../validations/notification.validation');
+const Candidate = require('../models/candidate.model');
 
 /**
  * Handles sending a manual notification via API
@@ -22,6 +23,27 @@ const createManualNotification = async (req, res, next) => {
         });
 
         return sendSuccess(res, 'Notification sent successfully', notification, 201);
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * Handles sending a notification to an entire group or exam batch.
+ */
+const createBatchNotification = async (req, res, next) => {
+    try {
+        const errors = validateBody(batchNotificationSchema, req.body);
+        if (errors) {
+            return sendError(res, 'Validation failed', 400, errors);
+        }
+
+        const result = await notificationService.sendBatchNotification({
+            ...req.body,
+            tenantId: req.tenantId
+        });
+
+        return sendSuccess(res, 'Batch notifications processed', result, 201);
     } catch (error) {
         next(error);
     }
@@ -69,8 +91,53 @@ const markRead = async (req, res, next) => {
     }
 };
 
+/**
+ * @desc    Update candidate notification preferences
+ * @route   PATCH /api/v1/notifications/preferences
+ * @access  Private (Candidate)
+ */
+
+const updateMyPreferences = async (req, res, next) => {
+    try {
+        const candidateId = req.user.id;
+        const tenantId = req.user.tenantId;
+
+        const { examScheduled, examReminder, resultsReleased } = req.body;
+
+        const updatedCandidate = await Candidate.findByIdAndUpdate(
+            { _id: candidateId, tenantId },
+            {
+                $set: {
+                    'notificationPreferences.examScheduled': examScheduled,
+                    'notificationPreferences.examReminder': examReminder,
+                    'notificationPreferences.resultReleased': resultsReleased
+                }
+            },
+            { new: true, runValidators: true }
+        ).select('notificationPreferences');
+
+        if (!updatedCandidate) {
+            return res.status(404).json({
+                success: false,
+                message: 'Candidate profile not found or tenant mismatch'
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: 'Notification preferences updated successfully',
+            data: updatedCandidate.notificationPreferences
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
+
 module.exports = {
     createManualNotification,
     getMyNotifications,
-    markRead
+    createBatchNotification,
+    markRead,
+    updateMyPreferences
 };

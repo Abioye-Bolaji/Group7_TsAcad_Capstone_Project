@@ -10,6 +10,7 @@ const authMiddleware = require("./middlewares/auth.middleware");
 const errorMiddleware = require("./middlewares/error.middleware");
 
 // ─── Route Imports ────────────────────────────────────────────────────────────
+const authRoutes = require('./routes/auth.routes'); // F1
 const tenantRoutes = require('./routes/tenant.routes');
 const examRoutes = require('./routes/exam.routes'); // F4
 const candidateRoutes  = require('./routes/candidate.routes');  // F5
@@ -18,6 +19,9 @@ const sessionRoutes = require('./routes/exam-session.routes');    // F6
 const auditRoutes = require('./routes/audit-log.routes'); // F12
 const questionBankRoutes = require('./routes/question-bank.routes'); // F3
 const resultRoutes = require('./routes/result.routes'); // F8
+const subscriptionRoutes = require('./routes/subscription.routes'); //F11
+const billingRoutes = require('./routes/billing.routes'); //F11
+const notifyRoutes = require('./routes/notification.routes'); // F10
 
 const app = express();
 
@@ -70,6 +74,8 @@ app.use('/api/v1/billing', billingRoutes); // F11
 app.use('/api/v1/audit', auditRoutes); // F12
 app.use('/api/v1/questions', questionBankRoutes); // F3
 app.use('/api/v1/results', resultRoutes); // F8
+app.use('/api/v1/notifications', notifyRoutes); // F10
+
 
 // Future protected routes (add as teammates complete their features):
 

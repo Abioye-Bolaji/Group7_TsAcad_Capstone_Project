@@ -26,7 +26,7 @@ const notificationSchema = new mongoose.Schema({
         type: String,
         required: [true, 'Message body is required']
     },
-    // Type determines if it appears in-app, via email, or both
+    // determines if it appears in-app, via email, or both
     type: {
         type: String,
         enum: ['in-app', 'email', 'both'],
@@ -36,6 +36,15 @@ const notificationSchema = new mongoose.Schema({
     isRead: {
         type: Boolean,
         default: false,
+    },
+    deliveryStatus: {
+        type: String,
+        enum: ['pending', 'sent', 'failed'],
+        default: 'sent'
+    },
+    deliveryError: {
+        type: String,
+        default: null
     },
     // Optional data (like an exam ID) to help the frontend redirect the user
     metadata: {
