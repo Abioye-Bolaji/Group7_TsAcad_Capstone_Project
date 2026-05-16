@@ -1,6 +1,8 @@
 const QuestionBank = require('../models/question-bank.model');
 const Tenant = require('../models/tenant.model');
 const { sendError, sendSuccess } = require('../utils/response');
+const XLSX = require('xlsx');
+const cloudinary = require('../config/cloudinary.js');
 
 /**
  * @desc Question Bank Controller
@@ -15,10 +17,12 @@ const { sendError, sendSuccess } = require('../utils/response');
 
 exports.createQuestion = async (req, res) => {
     try {
-        const { questionText, options, difficulty, subjectId, questionType, topic, tag } = req.body;
-        const tenantId = req.tenantId; // Set by tenant middleware
+        const { questionText, options, difficulty, subjectId, questionType, topic, tags } = req.body;
 
-        // Validate tenant existence (optional, since tenant middleware should have done this)
+        const imageUrl = req.file ? req.file.path : null; 
+
+        const tenantId = req.tenantId; 
+
         const tenant = await Tenant.findById(tenantId);
         if (!tenant) {
             return sendError(res, 'Tenant not found', 404);
@@ -32,7 +36,8 @@ exports.createQuestion = async (req, res) => {
             subjectId,
             questionType,
             topic,
-            tag,
+            tags,
+            imageUrl,
         });
         await question.save();
         return sendSuccess(res, 'Question created successfully', question, 201);
@@ -46,7 +51,7 @@ exports.createQuestion = async (req, res) => {
 
 exports.getQuestions = async (req, res) => {
     try {
-        const tenantId = req.tenantId; // Set by tenant middleware
+        const tenantId = req.tenantId; 
         const filters = { tenantId };
         if (req.query.difficulty) {
             filters.difficulty = req.query.difficulty;
@@ -60,8 +65,8 @@ exports.getQuestions = async (req, res) => {
         if (req.query.topic) {
             filters.topic = req.query.topic;
         }
-        if (req.query.tag) {
-            filters.tag = req.query.tag;
+        if (req.query.tags) {
+            filters.tags = { $in: req.query.tags.split(',') };
         }
         if (req.query.search) {
             filters.questionText = {
@@ -131,7 +136,30 @@ exports.deleteQuestion = async (req, res) => {
     }
 };
 
-const XLSX = require('xlsx');
+exports.updateQuestionImage = async (req, res) => {
+    try {
+        const tenantId = req.tenantId;
+        const questionId = req.params.id;
+        const imageUrl = req.file ? req.file.path : null;
+        const question = await QuestionBank.findOneAndUpdate(
+            { _id: questionId, tenantId },
+            { imageUrl },
+            { new: true, runValidators: true }
+        );
+        if (!question) {
+            return sendError(res, 'Question not found', 404);
+        }
+        if (question.imageUrl) {
+            await cloudinary.uploader.upload(question.imageUrl, {
+                folder: `tenants/${tenantId}/questions/${questionId}`,
+            });
+        }
+        return sendSuccess(res, 'Question image updated successfully', question, 200);
+    } catch (error) {
+        console.error('updateQuestionImage error:', error);
+        return sendError(res, 'Failed to update question image', 500);
+    }
+};
 
 /**
  * @desc Bulk import questions via CSV/Excel
@@ -141,7 +169,7 @@ const XLSX = require('xlsx');
 exports.bulkImportQuestions = async (req, res) => {
     try {
         const tenantId = req.tenantId;
-        // Ensure file exists
+
         if (!req.file) {
             return sendError(res, 'No file uploaded', 400);
         }
@@ -206,6 +234,7 @@ exports.bulkImportQuestions = async (req, res) => {
                 tags: row.tags
                     ? row.tags.split(',').map(tag => tag.trim())
                     : [],
+                imageUrl: row.imageUrl || '',
             };
         });
 

@@ -19,4 +19,6 @@ const upload = multer({
     },
 });
 
-module.exports = upload;
+const uploadQuestion = multer({ upload });
+
+module.exports = uploadQuestion;
