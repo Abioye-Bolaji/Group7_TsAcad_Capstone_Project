@@ -144,6 +144,14 @@ const submitExamService = async (sessionId) => {
 
   await session.save();
 
+  // Trigger Autograding and Scoring immediately upon submission (Feature F7)
+  try {
+    const scoringService = require("./scoring.service");
+    await scoringService.gradeSubmittedSession(session._id, session.tenantId);
+  } catch (gradingError) {
+    console.error(`Automatic grading failed for session ${sessionId}:`, gradingError.message);
+  }
+
   return session;
 };
 
