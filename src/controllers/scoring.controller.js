@@ -1,9 +1,18 @@
 const service = require('../services/scoring.service');
 const { sendSuccess, sendError } = require('../utils/response');
+const { auditLog } = require('../utils/audit-log.utils');
+const { submitManualGradeSchema, validateBody } = require('../validations/scoring.validation');
 
 const gradeSession = async (req, res) => {
     try {
         const result = await service.gradeSubmittedSession(req.params.sessionId, req.tenantId);
+        
+        await auditLog(req, 'GRADE_SESSION', 'result', {
+            resourceId: result._id,
+            description: `Exam session ${req.params.sessionId} graded successfully. Score: ${result.percentage}%.`,
+            severity: 'LOW'
+        });
+
         return sendSuccess(res, 'Session graded successfully', result, 201);
     } catch (err) {
         return sendError(res, err.message, 400);
@@ -58,11 +67,12 @@ const getManualQueue = async (req, res) => {
 
 const submitManualGrade = async (req, res) => {
     try {
+        const errors = validateBody(submitManualGradeSchema, req.body);
+        if (errors) {
+            return sendError(res, 'Validation failed', 400, errors);
+        }
+
         const { questionId, marksAwarded, feedback } = req.body;
-        if (!questionId || marksAwarded === undefined)
-            return sendError(res, 'QuestionId and marksAwarded are required', 400);
-        if (typeof marksAwarded !== 'number')
-            return sendError(res, 'marksAwarded must be a number', 400);
 
         const result = await service.submitManualGrade(
             req.params.resultId,
@@ -72,6 +82,13 @@ const submitManualGrade = async (req, res) => {
             feedback,
             req.tenantId
         );
+
+        await auditLog(req, 'SUBMIT_MANUAL_GRADE', 'result', {
+            resourceId: result._id,
+            description: `Manual grade submitted for question ${questionId} in result ${req.params.resultId}. Marks awarded: ${marksAwarded}.`,
+            severity: 'MEDIUM'
+        });
+
         return sendSuccess(res, 'Manual grade saved', result);
     } catch (err) {
         return sendError(res, err.message, 400);
@@ -85,6 +102,13 @@ const releaseResult = async (req, res) => {
             req.tenantId,
             req.user._id
         );
+
+        await auditLog(req, 'RELEASE_RESULT', 'result', {
+            resourceId: result._id,
+            description: `Exam result ${req.params.resultId} released to candidate.`,
+            severity: 'HIGH'
+        });
+
         return sendSuccess(res, 'Result released to candidate', result);
     } catch (err) {
         return sendError(res, err.message, 400);
