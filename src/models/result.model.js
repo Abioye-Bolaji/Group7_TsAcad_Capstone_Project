@@ -2,8 +2,8 @@ const mongoose = require('mongoose');
 
 /**
  * @desc Result Model
- * Stores the final grade and status of a candidate's exam attempt.
- * Links to Candidate and Exam.
+ * Stores the final grade, detailed answer breakdown, manual grading queue, and status of a candidate's exam attempt.
+ * Links to Candidate, Exam, and ExamSession.
  * Follows the tenantId contract for data isolation.
  */
 
@@ -15,10 +15,16 @@ const resultSchema = new mongoose.Schema(
             required: true,
             index: true,
         },
+        sessionId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'ExamSession',
+            index: true,
+        },
         candidateId: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Candidate',
             required: true,
+            index: true,
         },
         candidateName: {
             type: String,
@@ -32,6 +38,7 @@ const resultSchema = new mongoose.Schema(
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Exam',
             required: true,
+            index: true,
         },
         examName: {
             type: String,
@@ -42,7 +49,17 @@ const resultSchema = new mongoose.Schema(
             required: true,
             default: 0,
         },
+        rawScore: {
+            type: Number,
+            required: true,
+            default: 0,
+        },
         maxScore: {
+            type: Number,
+            required: true,
+            default: 0,
+        },
+        totalMarks: {
             type: Number,
             required: true,
             default: 0,
@@ -64,6 +81,7 @@ const resultSchema = new mongoose.Schema(
         },
         passed: {
             type: Boolean,
+            required: true,
             default: false,
         },
         released: {
@@ -95,15 +113,55 @@ const resultSchema = new mongoose.Schema(
             type: Date,
             default: null,
         },
+        answerBreakdown: [{
+            questionId: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: 'QuestionBank',
+            },
+            candidateAnswer: mongoose.Schema.Types.Mixed,
+            correctAnswer: mongoose.Schema.Types.Mixed,
+            isCorrect: { type: Boolean },
+            marksAwarded: {
+                type: Number,
+                default: 0,
+            },
+            marksAvailable: { type: Number },
+            requiresManualGrading: {
+                type: Boolean,
+                default: false,
+            },
+        }],
+        gradingStatus: {
+            type: String,
+            enum: ['auto_graded', 'pending_manual', 'fully_graded', 'released'],
+            default: 'auto_graded',
+        },
+        manualGradingQueue: [{
+            questionId: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: 'QuestionBank',
+            },
+            candidateAnswer: String,
+            maxMarks: Number,
+            marksAwarded: {
+                type: Number,
+                default: null,
+            },
+            gradedBy: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: 'User',
+            },
+            gradedAt: Date,
+            feedback: String,
+        }],
     },
     {
         timestamps: true,
     }
 );
 
-// Index for fast lookups
+// Indexes for fast lookups
 resultSchema.index({ tenantId: 1, candidateId: 1 });
 resultSchema.index({ tenantId: 1, examId: 1 });
-// resultSchema.index({ certificateCode: 1 });
 
 module.exports = mongoose.model('Result', resultSchema);

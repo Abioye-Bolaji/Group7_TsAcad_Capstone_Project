@@ -1,7 +1,6 @@
 const service = require('../services/scoring.service');
 const { sendSuccess, sendError } = require('../utils/response');
 
-
 const gradeSession = async (req, res) => {
     try {
         const result = await service.gradeSubmittedSession(req.params.sessionId, req.tenantId);
@@ -25,7 +24,7 @@ const getCandidateResult = async (req, res) => {
     try {
         const result = await service.getResultBySession(req.params.sessionId, req.tenantId);
         if (!result) return sendError(res, 'Result not available yet', 404);
-        return sendSuccess(res, 'Results fetched', results);
+        return sendSuccess(res, 'Results fetched', result);
     } catch (err) {
         return sendError(res, err.message, 500);
     }
@@ -35,9 +34,14 @@ const getExamResults = async (req, res) => {
     try {
         const filters = req.query.status ? { gradingStatus: req.query.status } : {};
         const results = await service.getResultByExam(req.params.examId, req.tenantId, filters);
-        if (!result) return sendError(res, 'Result not available yet', 404);
-        const { manualGradingQueue, ...safeResult } = result;
-        return sendSuccess(res, 'Result fetched', safeResult);
+        
+        // Strip manualGradingQueue from the results returned to candidates/public (for security/clutter)
+        const safeResults = results.map(r => {
+            const { manualGradingQueue, ...rest } = r;
+            return rest;
+        });
+
+        return sendSuccess(res, 'Results fetched', safeResults);
     } catch (err) {
         return sendError(res, err.message, 500);
     }
@@ -61,7 +65,7 @@ const submitManualGrade = async (req, res) => {
             return sendError(res, 'marksAwarded must be a number', 400);
 
         const result = await service.submitManualGrade(
-            req.prams.resultId,
+            req.params.resultId,
             questionId,
             marksAwarded,
             req.user._id,
