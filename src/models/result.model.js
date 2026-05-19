@@ -164,4 +164,10 @@ const resultSchema = new mongoose.Schema(
 resultSchema.index({ tenantId: 1, candidateId: 1 });
 resultSchema.index({ tenantId: 1, examId: 1 });
 
+// F9 Analytics indexes
+resultSchema.index({ tenantId: 1, examId: 1, released: 1 });
+resultSchema.index({ tenantId: 1, candidateId: 1, completionDate: 1 });
+resultSchema.index({ tenantId: 1, gradingStatus: 1 });
+resultSchema.index({ 'answerBreakdown.questionId': 1 });
+
 module.exports = mongoose.model('Result', resultSchema);
