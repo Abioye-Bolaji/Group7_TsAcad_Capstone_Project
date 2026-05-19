@@ -1,80 +1,72 @@
 const express = require('express');
 const router = express.Router();
-const questionBankController = require('../controllers/question-bank.controller');
 const authMiddleware = require('../middlewares/auth.middleware');
 const tenantMiddleware = require('../middlewares/tenant.middleware');
-const authorizeRoles = require('../middlewares/role.middleware');
-const upload = require('../middlewares/question-upload.middleware');
+const questionBankController = require('../controllers/question-bank.controller');
+const uploadImage = require('../middlewares/image-upload.middleware');
+const uploadQuestion  = require('../middlewares/question-upload.middleware');
+
+const {bulkImportQuestions} = require('../controllers/question-bank.controller');
 
 /**
- * @desc Question Bank Routes (Feature F3)
- * Scoped to tenant via tenantMiddleware.
- * Author: Tobiloba Obiyomi (Stabilized by Antigravity)
+ * @desc Question Bank Routes
+ * Branch: feat/question-bank
+ * Author: Tobiloba Obiyomi (obiyomitobiloba@gmail.com)
+ * NOTE ON AUTH GUARDS:
+ * The auth middleware (F1 - Auth feature) is required for all protected routes.
+ * Unauthenticated requests will be rejected with a 401 Unauthorized response.
+ * The auth middleware will also decode the JWT and attach req.user with the user's info.
+ * This allows us to access req.user.tenantId for tenant scoping in the controllers.
+ * PLACEHOLDER — replace with real auth when F1 publishes auth middleware:
+ *   const { requireAuth } = require('../middlewares/auth');
  */
 
-// All routes require authentication and tenant scoping
-router.use(authMiddleware);
-router.use(tenantMiddleware);
 
-/**
- * @route POST /api/v1/questions
- * @access tenant_admin, examiner
- */
-router.post(
-    '/', 
-    authorizeRoles('tenant_admin', 'examiner'),
-    questionBankController.createQuestion
-);
+// ═════════════════════════════════════════════════════════════════════════════
+//  QUESTION BANK ROUTES (scoped to tenant via middleware)
+// ═════════════════════════════════════════════════════════════════════════════
 
-/**
- * @route GET /api/v1/questions
- * @access tenant_admin, examiner
- */
-router.get(
-    '/', 
-    authorizeRoles('tenant_admin', 'examiner'),
-    questionBankController.getQuestions
-);
 
-/**
- * @route GET /api/v1/questions/:id
- * @access tenant_admin, examiner
- */
-router.get(
-    '/:id', 
-    authorizeRoles('tenant_admin', 'examiner'),
-    questionBankController.getQuestionById
-);
+router.post('/questions', 
+            authMiddleware, 
+            tenantMiddleware,
+            questionBankController.createQuestion
+        );
 
-/**
- * @route PUT /api/v1/questions/:id
- * @access tenant_admin, examiner
- */
-router.put(
-    '/:id', 
-    authorizeRoles('tenant_admin', 'examiner'),
-    questionBankController.updateQuestion
-);
+router.get('/questions', 
+            authMiddleware, 
+            tenantMiddleware,
+            questionBankController.getQuestions
+        );
+router.get('/questions/:id', 
+            authMiddleware, 
+            tenantMiddleware,
+            questionBankController.getQuestionById
+        );
+router.put('/questions/:id', 
+            authMiddleware, 
+            tenantMiddleware,
+            questionBankController.updateQuestion
+        );
+router.delete('/questions/:id', 
+            authMiddleware, 
+            tenantMiddleware,
+            questionBankController.deleteQuestion
+        );
 
-/**
- * @route DELETE /api/v1/questions/:id
- * @access tenant_admin
- */
-router.delete(
-    '/:id', 
-    authorizeRoles('tenant_admin'),
-    questionBankController.deleteQuestion
-);
+router.post('/questions/bulk-upload', 
+            authMiddleware,
+            tenantMiddleware,
+            uploadQuestion.single('questions'),
+            bulkImportQuestions
+        );
 
-/**
- * @route POST /api/v1/questions/bulk-upload
- * @access tenant_admin
- */
-router.post(
-    '/bulk-upload', 
-    authorizeRoles('tenant_admin'),
-    upload.single('questions'),
-    questionBankController.bulkImportQuestions
-);
-
+router.post('/questions/:id/image', 
+            authMiddleware,
+            tenantMiddleware,
+            uploadImage.single('image'),
+            questionBankController.updateQuestionImage
+        );
+        
 module.exports = router;
+

@@ -25,6 +25,7 @@ const getAllLogs = async ({ user, tenantId, query: q }) => {
         endDate,
     } = q;
 
+
     const query = buildBaseQuery(user, tenantId);
 
     if (action) query.action = action.toUpperCase();
