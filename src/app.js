@@ -1,15 +1,22 @@
 require("dotenv").config();
+
+if (process.env.NODE_ENV !== "production") {
+  const dns = require("node:dns");
+  dns.setServers(['8.8.8.8', '8.8.4.4']);
+}
+
 const express = require("express");
 const cors = require("cors");
 const morgan = require("morgan");
-const tenantMiddleware = require("./middlewares/tenant.middleware");
+
+// ─── UTILITIES AND MIDDLEWARES ───────────────────────────────────────────────
 const { sendSuccess, sendError } = require("./utils/response");
-const authRoutes = require('./routes/auth.routes');
-const subscriptionRoutes = require('./routes/subscription.routes');
-const billingRoutes = require('./routes/billing.routes');
-const errorMiddleware = require('./middlewares/error.middleware');
+const tenantMiddleware = require("./middlewares/tenant.middleware");
+const authMiddleware = require("./middlewares/auth.middleware");
+const errorMiddleware = require("./middlewares/error.middleware");
 
 // ─── Route Imports ────────────────────────────────────────────────────────────
+const authRoutes = require('./routes/auth.routes'); // F1
 const tenantRoutes = require('./routes/tenant.routes');
 const examRoutes = require('./routes/exam.routes'); // F4
 const candidateRoutes  = require('./routes/candidate.routes');  // F5
@@ -18,18 +25,24 @@ const sessionRoutes = require('./routes/exam-session.routes');    // F6
 const auditRoutes = require('./routes/audit-log.routes'); // F12
 const questionBankRoutes = require('./routes/question-bank.routes'); // F3
 const resultRoutes = require('./routes/result.routes'); // F8
+const subscriptionRoutes = require('./routes/subscription.routes'); //F11
+const billingRoutes = require('./routes/billing.routes'); //F11
+const notifyRoutes = require('./routes/notification.routes'); // F10
+const scoringRoutes = require('./routes/scoring.routes'); // F7
+const analyticsRoutes = require('./routes/analytics.routes'); // F9
 
 const app = express();
 
-// ─── 1. Global Middlewares ────────────────────────────────────────────────────
+// ─── 1. GLOBAL MIDDLEWARES ────────────────────────────────────────────────────
 app.use(cors());
 app.use(morgan("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// ─── 2. Public Routes (No auth required) ─────────────────────────────────────
+// ─── 2. PUBLIC ROUTES ─────────────────────────────────────────────────────────
+// These do not require a login or a tenant ID.
 app.get("/health", (req, res) => {
-  return sendSuccess(res, "Multitenancy CBT API is running smoothly 🚀", {
+  return sendSuccess(res, "Multitenancy CBT API is running smoothly", {
     version: "v1",
     timestamp: new Date().toISOString(),
   });
@@ -69,15 +82,19 @@ app.use('/api/v1/billing', billingRoutes); // F11
 app.use('/api/v1/audit', auditRoutes); // F12
 app.use('/api/v1/questions', questionBankRoutes); // F3
 app.use('/api/v1/results', resultRoutes); // F8
+app.use('/api/v1/notifications', notifyRoutes); // F10
+app.use('/api/v1/scoring', scoringRoutes); // F7
+app.use('/api/v1/analytics', analyticsRoutes); // F9
+
 
 // Future protected routes (add as teammates complete their features):
 
-// ─── 6. 404 Handler ───────────────────────────────────────────────────────────
+// ─── 6. 404 HANDLER ───────────────────────────────────────────────────────────
 app.use((req, res) => {
   return sendError(
     res,
     `Route not found: ${req.method} ${req.originalUrl}`,
-    404,
+    404
   );
 });
 

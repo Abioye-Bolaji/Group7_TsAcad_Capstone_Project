@@ -274,6 +274,14 @@ const bulkImportCandidates = async (req, res, next) => {
             return sendError(res, 'No CSV file uploaded. Please attach a file with field name "file".', 400);
         }
 
+        const maxAllowed = req.tenant?.settings?.maxCandidates || 500;
+        const Candidate = require('../models/candidate.model');
+        const currentCount = await Candidate.countDocuments({ tenantId: req.tenantId });
+
+        if(currentCount >= maxAllowed) {
+            return sendError(res, `Subscription Limit Reached: Your plan only allows ${maxAllowed} candidates. Please upgrade your plan`, 403);
+        }
+
         const result = await candidateService.bulkImportCandidates(
             req.file.buffer,
             req.tenantId,
