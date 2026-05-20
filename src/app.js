@@ -21,6 +21,7 @@ const questionBankRoutes = require('./routes/question-bank.routes'); // F3
 const resultRoutes = require('./routes/result.routes'); // F8
 const subscriptionRoutes = require('./routes/subscription.routes'); //F11
 const billingRoutes = require('./routes/billing.routes'); //F11
+const webhookRoutes = require('./routes/payment-webhook.routes'); // F11
 const notifyRoutes = require('./routes/notification.routes'); // F10
 
 const app = express();
@@ -43,8 +44,12 @@ app.get("/health", (req, res) => {
 // ─── 3a. Auth Routes (Public — login/register don't need tenant scope) ─────────
 app.use('/api/v1/auth', authRoutes);
 
-// ─── 3b. Subscription Routes (Mixed: public plans + protected subscription) ──
+//3b. Subscription Routes (Mixed: public plans + protected subscription)
 app.use('/api/v1/subscriptions', subscriptionRoutes); // F11
+
+//3c. Webhook Routes (No auth - signature-verified)
+app.use('/api/v1/webhooks', webhookRoutes); // F11
+
 
 // ─── 4. DEV-MODE Auth Shim ────────────────────────────────────────────────────
 if (process.env.NODE_ENV !== "production") {
