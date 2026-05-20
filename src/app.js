@@ -86,7 +86,6 @@ app.use('/api/v1/notifications', notifyRoutes); // F10
 app.use('/api/v1/scoring', scoringRoutes); // F7
 app.use('/api/v1/analytics', analyticsRoutes); // F9
 
-
 // Future protected routes (add as teammates complete their features):
 
 // ─── 6. 404 HANDLER ───────────────────────────────────────────────────────────

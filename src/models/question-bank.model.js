@@ -28,12 +28,12 @@ const questionBankSchema = new mongoose.Schema(
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Tenant',
             required: true,
-            index: true, // For faster queries by tenantId
+            index: true,
         },
 
         questionType:{
             type: String,
-            enum: ['multiple-choice', 'true-false', 'short-answer'],
+            enum: ['multiple_choice', 'true_false', 'short_answer'],
             required: true,
         },
 

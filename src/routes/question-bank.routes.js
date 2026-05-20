@@ -5,8 +5,8 @@ const tenantMiddleware = require('../middlewares/tenant.middleware');
 const questionBankController = require('../controllers/question-bank.controller');
 const uploadImage = require('../middlewares/image-upload.middleware');
 const uploadQuestion  = require('../middlewares/question-upload.middleware');
-
-const {bulkImportQuestions} = require('../controllers/question-bank.controller');
+const bulkImportQuestions = require('../controllers/question-bank.controller').bulkImportQuestions;
+const authorizeRoles = require('../middlewares/role.middleware');
 
 /**
  * @desc Question Bank Routes
@@ -38,26 +38,29 @@ router.get('/questions',
             tenantMiddleware,
             questionBankController.getQuestions
         );
+
 router.get('/questions/:id', 
             authMiddleware, 
             tenantMiddleware,
             questionBankController.getQuestionById
         );
+
 router.put('/questions/:id', 
             authMiddleware, 
             tenantMiddleware,
             questionBankController.updateQuestion
         );
+
 router.delete('/questions/:id', 
             authMiddleware, 
             tenantMiddleware,
-            questionBankController.deleteQuestion
+            questionBankController.deleteQuestion     
         );
 
 router.post('/questions/bulk-upload', 
             authMiddleware,
             tenantMiddleware,
-            uploadQuestion.single('questions'),
+            uploadQuestion.single('file'),
             bulkImportQuestions
         );
 
