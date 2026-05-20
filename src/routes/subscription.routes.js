@@ -2,6 +2,7 @@ const express = require('express');
 const subscriptionController = require('../controllers/subscription.controller');
 const authMiddleware = require('../middlewares/auth.middleware');
 const tenantMiddleware = require('../middlewares/tenant.middleware');
+const { featureGatingMiddleware, requirePlan } = require('../middlewares/feature-gating.middleware');
 const { subscriptionValidation, validateRequest } = require('../validations/subscription.validation');
 
 
