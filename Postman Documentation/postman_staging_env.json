@@ -1,0 +1,9 @@
+{
+  "id": "cbt_exam_platform-env-staging",
+  "name": "CBT Exam Platform Staging",
+  "values": [
+    { "key": "base_url", "value": "https://staging-api.cbtexamplatform.com/api/v1", "type": "default", "enabled": true },
+    { "key": "token", "value": "", "type": "secret", "enabled": true }
+  ],
+  "_postman_variable_scope": "environment"
+}
