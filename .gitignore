@@ -22,3 +22,6 @@ Thumbs.db
 # Lock files (team uses npm)
 package-lock.json
 yarn.lock
+
+# Postman Documentation
+Postman Documentation/

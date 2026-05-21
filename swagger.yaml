@@ -16,7 +16,7 @@ components:
 
   schemas:
     Tenant:
-      type: object
+      type: object      git checkout feat/docs-devops      git checkout feat/docs-devops      git checkout feat/docs-devops
       properties:
         _id: { type: string, example: "64f1c2a5b3c4d5e6f7a8b9c0" }
         name: { type: string, example: "Test Uni A" }
