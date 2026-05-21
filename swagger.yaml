@@ -1,0 +1,383 @@
+openapi: 3.0.5
+info:
+  title: Exam Platform API
+  version: 1.0.0
+  description: Multi-tenant exam platform API for creating exams, managing candidates, and auto-grading submissions.
+servers:
+- url: http://localhost:5000/api/v1
+  description: Local Dev
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Tenant:
+      type: object
+      properties:
+        _id: { type: string, example: "64f1c2a5b3c4d5e6f7a8b9c0" }
+        name: { type: string, example: "Test Uni A" }
+        email: { type: string, example: "adminA@test.com" }
+        plan: { type: string, enum: [free, pro, enterprise], example: "free" }
+        createdAt: { type: string, format: date-time, example: "2026-01-01T09:00:00Z" }
+        deletedAt: { type: string, format: date-time, nullable: true }
+
+    User:
+      type: object
+      properties:
+        _id: { type: string, example: "64f1c2a5b3c4d5e6f7a8b9c1" }
+        name: { type: string, example: "Admin User" }
+        email: { type: string, example: "adminA@test.com" }
+        role: { type: string, enum: [super_admin, tenant_admin, staff], example: "tenant_admin" }
+        tenantId: { type: string, example: "64f1c2a5b3c4d5e6f7a8b9c0" }
+
+    AuthResponse:
+      type: object
+      properties:
+        success: { type: boolean, example: true }
+        token: { type: string, example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." }
+        user: { $ref: '#/components/schemas/User' }
+
+    Question:
+      type: object
+      properties:
+        type: { type: string, enum: [mcq, true_false, short_answer], example: "mcq" }
+        question: { type: string, example: "What is 2+2?" }
+        options: { type: array, items: { type: string }, example: ["3", "4", "5"] }
+        answer: { type: string, example: "4" }
+        marks: { type: number, example: 5 }
+
+    Exam:
+      type: object
+      properties:
+        _id: { type: string, example: "64f1c2a5b3c4d5e6f7a8b9c2" }
+        tenantId: { type: string, example: "64f1c2a5b3c4d5e6f7a8b9c0" }
+        title: { type: string, example: "Algorithms Quiz" }
+        subject: { type: string, example: "Computer Science" }
+        duration: { type: number, example: 30 }
+        passMark: { type: number, example: 50 }
+        questions: { type: array, items: { $ref: '#/components/schemas/Question' } }
+        startDate: { type: string, format: date-time, example: "2026-01-01T09:00:00Z" }
+        endDate: { type: string, format: date-time, example: "2026-01-02T09:00:00Z" }
+
+    CandidateGroup:
+      type: object
+      properties:
+        _id: { type: string, example: "64f1c2a5b3c4d5e6f7a8b9c3" }
+        tenantId: { type: string, example: "64f1c2a5b3c4d5e6f7a8b9c0" }
+        name: { type: string, example: "CS 200 Level" }
+        description: { type: string, example: "CS 200 Level Test Group" }
+
+    Candidate:
+      type: object
+      properties:
+        _id: { type: string, example: "64f1c2a5b3c4d5e6f7a8b9c4" }
+        tenantId: { type: string, example: "64f1c2a5b3c4d5e6f7a8b9c0" }
+        groupId: { type: string, example: "64f1c2a5b3c4d5e6f7a8b9c3" }
+        name: { type: string, example: "Jane Doe" }
+        email: { type: string, example: "jane@test.com" }
+
+    SubmissionResult:
+      type: object
+      properties:
+        success: { type: boolean, example: true }
+        data:
+          type: object
+          properties:
+            sessionId: { type: string, example: "64f1c2a5b3c4d5e6f7a8b9c5" }
+            score: { type: number, example: 10 }
+            totalMarks: { type: number, example: 10 }
+            passed: { type: boolean, example: true }
+
+security:
+    - bearerAuth: []
+
+paths:
+  /tenants:
+    post:
+      summary: Create a new tenant
+      tags: [Tenants]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example:
+              name: "Test Uni A"
+              email: "adminA@test.com"
+              plan: "free"
+            schema:
+              type: object
+              required: [name, email, plan]
+              properties:
+                name: { type: string }
+                email: { type: string }
+                plan: { type: string, enum: [free, pro, enterprise] }
+      responses:
+        201:
+          description: Tenant created
+          content:
+            application/json:
+              example:
+                success: true
+                data:
+                  _id: "64f1c2a5b3c4d5e6f7a8b9c0"
+                  name: "Test Uni A"
+                  email: "adminA@test.com"
+                  plan: "free"
+                  createdAt: "2026-01-01T09:00:00Z"
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data: { $ref: '#/components/schemas/Tenant' }
+
+  /auth/login:
+    post:
+      summary: Admin login
+      tags: [Auth]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example:
+              email: "adminA@test.com"
+              password: "Password123"
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string, format: email }
+                password: { type: string }
+      responses:
+        200:
+          description: Login successful
+          content:
+            application/json:
+              example:
+                success: true
+                token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                user:
+                  _id: "64f1c2a5b3c4d5e6f7a8b9c1"
+                  name: "Admin User"
+                  email: "adminA@test.com"
+                  role: "tenant_admin"
+                  tenantId: "64f1c2a5b3c4d5e6f7a8b9c0"
+              schema: { $ref: '#/components/schemas/AuthResponse' }
+
+  /candidate-groups:
+    post:
+      summary: Create candidate group
+      tags: [Groups]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example:
+              name: "CS 200 Level"
+              description: "CS 200 Level Test Group"
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name: { type: string }
+                description: { type: string }
+      responses:
+        201:
+          description: Group created
+          content:
+            application/json:
+              example:
+                success: true
+                data:
+                  _id: "64f1c2a5b3c4d5e6f7a8b9c3"
+                  name: "CS 200 Level"
+                  description: "CS 200 Level Test Group"
+
+  /exams:
+    post:
+      summary: Create exam
+      tags: [Exams]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example:
+              title: "Algorithms Quiz"
+              subject: "Computer Science"
+              duration: 30
+              passMark: 50
+              attemptsAllowed: 1
+              questions:
+                - type: "mcq"
+                  question: "What is 2+2?"
+                  options: ["3", "4", "5"]
+                  answer: "4"
+                  marks: 5
+                - type: "mcq"
+                  question: "Big O of binary search?"
+                  options: ["O(n)", "O(log n)", "O(1)"]
+                  answer: "O(log n)"
+                  marks: 5
+              startDate: "2026-01-01T09:00:00Z"
+              endDate: "2026-01-02T09:00:00Z"
+            schema:
+              type: object
+              required: [title, subject, duration, questions]
+      responses:
+        201:
+          description: Exam created
+          content:
+            application/json:
+              example:
+                success: true
+                data:
+                  _id: "64f1c2a5b3c4d5e6f7a8b9c2"
+                  title: "Algorithms Quiz"
+                  subject: "Computer Science"
+                  duration: 30
+                  passMark: 50
+
+  /candidates:
+    post:
+      summary: Create candidate
+      tags: [Candidates]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example:
+              name: "Jane Doe"
+              email: "jane@test.com"
+              password: "pass123"
+              groupId: "64f1c2a5b3c4d5e6f7a8b9c3"
+            schema:
+              type: object
+              required: [name, email, password, groupId]
+      responses:
+        201:
+          description: Candidate created
+          content:
+            application/json:
+              example:
+                success: true
+                data:
+                  _id: "64f1c2a5b3c4d5e6f7a8b9c4"
+                  name: "Jane Doe"
+                  email: "jane@test.com"
+
+  /candidates/login:
+    post:
+      summary: Candidate login
+      tags: [Auth]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example:
+              email: "jane@test.com"
+              password: "pass123"
+            schema:
+              type: object
+              required: [email, password]
+      responses:
+        200:
+          description: Login successful
+          content:
+            application/json:
+              example:
+                success: true
+                token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                user:
+                  _id: "64f1c2a5b3c4d5e6f7a8b9c4"
+                  name: "Jane Doe"
+                  email: "jane@test.com"
+                  role: "candidate"
+
+  /exams/{id}/submit:
+    post:
+      summary: Submit exam answers
+      tags: [Exams]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, example: "64f1c2a5b3c4d5e6f7a8b9c2" }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example:
+              answers: ["4", "O(log n)"]
+            schema:
+              type: object
+              required: [answers]
+              properties:
+                answers: { type: array, items: { type: string } }
+      responses:
+        200:
+          description: Submission processed
+          content:
+            application/json:
+              example:
+                success: true
+                data:
+                  sessionId: "64f1c2a5b3c4d5e6f7a8b9c5"
+                  score: 10
+                  totalMarks: 10
+                  passed: true
+              schema: { $ref: '#/components/schemas/SubmissionResult' }
+
+  /scoring/session/{sessionId}:
+    get:
+      summary: Get scoring result for a session
+      tags: [Scoring]
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema: { type: string, example: "64f1c2a5b3c4d5e6f7a8b9c5" }
+      responses:
+        200:
+          description: Scoring result
+          content:
+            application/json:
+              example:
+                success: true
+                data:
+                  score: 10
+                  totalMarks: 10
+                  passed: true
+                  details:
+                    - question: "What is 2+2?"
+                      correct: true
+                      score: 5
+                    - question: "Big O of binary search?"
+                      correct: true
+                      score: 5
+  /tenants/{id}:
+    delete:
+      summary: Delete tenant and all related data
+      tags: [Tenants]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, example: "64f1c2a5b3c4d5e6f7a8b9c0" }
+      responses:
+        200:
+          description: Tenant deleted
+          content:
+            application/json:
+              example:
+                success: true
+                message: "Tenant and all related data deleted successfully"
+                deletedAt: "2026-01-01T10:00:00Z"
+        404:
+          description: Tenant not found
+        403:
+          description: Forbidden
