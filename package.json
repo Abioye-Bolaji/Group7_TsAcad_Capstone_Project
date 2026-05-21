@@ -31,14 +31,29 @@
     "node-cron": "^4.2.1",
     "nodemailer": "^8.0.7",
     "pdfkit": "^0.18.0",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1",
     "uuid": "^14.0.0",
     "xlsx": "^0.18.5",
-    "xss-clean": "^0.1.4"
+    "xss-clean": "^0.1.4",
+    "yamljs": "^0.3.0"
   },
   "devDependencies": {
-    "nodemon": "^3.1.0"
+    "nodemon": "^3.1.14"
   },
   "engines": {
     "node": ">=18.0.0"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Abioye-Bolaji/Group7_TsAcad_Capstone_Project.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Abioye-Bolaji/Group7_TsAcad_Capstone_Project/issues"
+  },
+  "homepage": "https://github.com/Abioye-Bolaji/Group7_TsAcad_Capstone_Project#readme"
 }
