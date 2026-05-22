@@ -7,6 +7,20 @@ servers:
 - url: http://localhost:5000/api/v1
   description: Local Development Server
 
+tags:
+  - name: F1 - Tenant Management
+  - name: F2 - Authentication
+  - name: F3 - Question Bank
+  - name: F4 - Exams
+  - name: F5 - Candidates
+  - name: F6 - Exam Session
+  - name: F7 - Scoring
+  - name: F8 - Results & Certificates
+  - name: F9 - Analytics
+  - name: F10 - Notifications
+  - name: F11 - Subscriptions & Billing
+  - name: F12 - System Audit Logs
+
 components:
   securitySchemes:
     bearerAuth:
