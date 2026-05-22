@@ -3,6 +3,7 @@ const SubscriptionPlan = require('../models/subscription-plan.model');
 const BillingHistory = require('../models/billing-history.model');
 const UsageTracking = require('../models/usage-tracking.model');
 const mongoose = require('mongoose');
+const sendEmail = require('../utils/send.email');
 
 // Import subscription service for renewal operations
 const subscriptionService = require('./subscription.service');
@@ -366,8 +367,45 @@ class BillingService {
 
         for (const invoice of upcomingInvoices) {
             try {
-                // TODO: Send email reminder
-                // await sendEmail(invoice.tenantId.email, 'Payment Due Soon', {...})
+                const tenant = invoice.tenantId;
+                const dueDate = new Date(invoice.dueDate).toLocaleDateString('en-NG', {
+                    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+                });
+                const amount = `₦${Number(invoice.totalAmount).toLocaleString()}`;
+                const planName = invoice.planId?.name || 'your current plan';
+
+                const html = `
+                    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e0e0e0; border-radius: 8px;">
+                        <h2 style="color: #2c3e50;">📅 Upcoming Subscription Renewal</h2>
+                        <p>Hello <strong>${tenant.name}</strong>,</p>
+                        <p>This is a friendly reminder that your <strong>${planName}</strong> subscription is due for renewal in <strong>7 days</strong>.</p>
+                        <table style="width:100%; border-collapse: collapse; margin: 20px 0;">
+                            <tr style="background:#f4f6f8;">
+                                <td style="padding: 10px; border: 1px solid #ddd;"><strong>Plan</strong></td>
+                                <td style="padding: 10px; border: 1px solid #ddd;">${planName}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 10px; border: 1px solid #ddd;"><strong>Amount Due</strong></td>
+                                <td style="padding: 10px; border: 1px solid #ddd;">${amount}</td>
+                            </tr>
+                            <tr style="background:#f4f6f8;">
+                                <td style="padding: 10px; border: 1px solid #ddd;"><strong>Renewal Date</strong></td>
+                                <td style="padding: 10px; border: 1px solid #ddd;">${dueDate}</td>
+                            </tr>
+                        </table>
+                        <p>Your subscription will be automatically renewed on this date. If you wish to cancel or manage your subscription, please log in to your admin dashboard.</p>
+                        <p style="color: #888; font-size: 12px; margin-top: 32px;">
+                            If you believe this email was sent in error, please contact support.<br/>
+                            &copy; ${new Date().getFullYear()} CBT Platform. All rights reserved.
+                        </p>
+                    </div>
+                `;
+
+                await sendEmail(
+                    tenant.email,
+                    `⏰ Subscription Renewal Reminder — ${planName} renews on ${dueDate}`,
+                    html
+                );
 
                 // Mark as sent
                 await BillingHistory.updateOne(
