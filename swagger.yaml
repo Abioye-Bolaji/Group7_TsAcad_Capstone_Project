@@ -1,206 +1,156 @@
 openapi: 3.0.5
 info:
-  title: Exam Platform API
+  title: Multitenancy CBT Platform API
   version: 1.0.0
-  description: Multi-tenant exam platform API for creating exams, managing candidates, and auto-grading submissions.
+  description: Complete API documentation covering all 12 core features including Tenants, Exams, Autograding, Analytics, and Billing.
 servers:
 - url: http://localhost:5000/api/v1
-  description: Local Dev
+  description: Local Development Server
 
 components:
   securitySchemes:
     bearerAuth:
-      type: [http, https]
+      type: http
       scheme: bearer
       bearerFormat: JWT
 
-  schemas:
-    Tenant:
-      type: object      git checkout feat/docs-devops      git checkout feat/docs-devops      git checkout feat/docs-devops
-      properties:
-        _id: { type: string, example: "64f1c2a5b3c4d5e6f7a8b9c0" }
-        name: { type: string, example: "Test Uni A" }
-        email: { type: string, example: "adminA@test.com" }
-        plan: { type: string, enum: [free, pro, enterprise], example: "free" }
-        createdAt: { type: string, format: date-time, example: "2026-01-01T09:00:00Z" }
-        deletedAt: { type: string, format: date-time, nullable: true }
-
-    User:
-      type: object
-      properties:
-        _id: { type: string, example: "64f1c2a5b3c4d5e6f7a8b9c1" }
-        name: { type: string, example: "Admin User" }
-        email: { type: string, example: "adminA@test.com" }
-        role: { type: string, enum: [super_admin, tenant_admin, staff], example: "tenant_admin" }
-        tenantId: { type: string, example: "64f1c2a5b3c4d5e6f7a8b9c0" }
-
-    AuthResponse:
-      type: object
-      properties:
-        success: { type: boolean, example: true }
-        token: { type: string, example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." }
-        user: { $ref: '#/components/schemas/User' }
-
-    Question:
-      type: object
-      properties:
-        type: { type: string, enum: [mcq, true_false, short_answer], example: "mcq" }
-        question: { type: string, example: "What is 2+2?" }
-        options: { type: array, items: { type: string }, example: ["3", "4", "5"] }
-        answer: { type: string, example: "4" }
-        marks: { type: number, example: 5 }
-
-    Exam:
-      type: object
-      properties:
-        _id: { type: string, example: "64f1c2a5b3c4d5e6f7a8b9c2" }
-        tenantId: { type: string, example: "64f1c2a5b3c4d5e6f7a8b9c0" }
-        title: { type: string, example: "Algorithms Quiz" }
-        subject: { type: string, example: "Computer Science" }
-        duration: { type: number, example: 30 }
-        passMark: { type: number, example: 50 }
-        questions: { type: array, items: { $ref: '#/components/schemas/Question' } }
-        startDate: { type: string, format: date-time, example: "2026-01-01T09:00:00Z" }
-        endDate: { type: string, format: date-time, example: "2026-01-02T09:00:00Z" }
-
-    CandidateGroup:
-      type: object
-      properties:
-        _id: { type: string, example: "64f1c2a5b3c4d5e6f7a8b9c3" }
-        tenantId: { type: string, example: "64f1c2a5b3c4d5e6f7a8b9c0" }
-        name: { type: string, example: "CS 200 Level" }
-        description: { type: string, example: "CS 200 Level Test Group" }
-
-    Candidate:
-      type: object
-      properties:
-        _id: { type: string, example: "64f1c2a5b3c4d5e6f7a8b9c4" }
-        tenantId: { type: string, example: "64f1c2a5b3c4d5e6f7a8b9c0" }
-        groupId: { type: string, example: "64f1c2a5b3c4d5e6f7a8b9c3" }
-        name: { type: string, example: "Jane Doe" }
-        email: { type: string, example: "jane@test.com" }
-
-    SubmissionResult:
-      type: object
-      properties:
-        success: { type: boolean, example: true }
-        data:
-          type: object
-          properties:
-            sessionId: { type: string, example: "64f1c2a5b3c4d5e6f7a8b9c5" }
-            score: { type: number, example: 10 }
-            totalMarks: { type: number, example: 10 }
-            passed: { type: boolean, example: true }
-
 security:
-    - bearerAuth: []
+  - bearerAuth: []
 
 paths:
+  # F1: Tenant Management
   /tenants:
     post:
-      summary: Create a new tenant
-      tags: [Tenants]
+      summary: Create a new tenant (School)
+      tags: [F1 - Tenant Management]
       requestBody:
         required: true
         content:
           application/json:
             example:
               name: "Test Uni A"
-              email: "adminA@test.com"
-              plan: "free"
-            schema:
-              type: object
-              required: [name, email, plan]
-              properties:
-                name: { type: string }
-                email: { type: string }
-                plan: { type: string, enum: [free, pro, enterprise] }
+              email: "admin@test.com"
+              plan: "basic"
       responses:
         201:
           description: Tenant created
-          content:
-            application/json:
-              example:
-                success: true
-                data:
-                  _id: "64f1c2a5b3c4d5e6f7a8b9c0"
-                  name: "Test Uni A"
-                  email: "adminA@test.com"
-                  plan: "free"
-                  createdAt: "2026-01-01T09:00:00Z"
-              schema:
-                type: object
-                properties:
-                  success: { type: boolean }
-                  data: { $ref: '#/components/schemas/Tenant' }
+    get:
+      summary: Get all tenants
+      tags: [F1 - Tenant Management]
+      responses:
+        200:
+          description: List of tenants
+  /tenants/{id}:
+    get:
+      summary: Get a specific tenant
+      tags: [F1 - Tenant Management]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        200:
+          description: Tenant details
+    delete:
+      summary: Delete tenant and all related data
+      tags: [F1 - Tenant Management]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        200:
+          description: Tenant deleted
 
-  /auth/login:
+  # F2: Authentication & RBAC
+  /auth/register:
     post:
-      summary: Admin login
-      tags: [Auth]
+      summary: Register a new admin user
+      tags: [F2 - Authentication]
       security: []
       requestBody:
         required: true
         content:
           application/json:
             example:
-              email: "adminA@test.com"
+              name: "Admin User"
+              email: "admin@test.com"
               password: "Password123"
-            schema:
-              type: object
-              required: [email, password]
-              properties:
-                email: { type: string, format: email }
-                password: { type: string }
+              role: "tenant_admin"
       responses:
-        200:
-          description: Login successful
-          content:
-            application/json:
-              example:
-                success: true
-                token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-                user:
-                  _id: "64f1c2a5b3c4d5e6f7a8b9c1"
-                  name: "Admin User"
-                  email: "adminA@test.com"
-                  role: "tenant_admin"
-                  tenantId: "64f1c2a5b3c4d5e6f7a8b9c0"
-              schema: { $ref: '#/components/schemas/AuthResponse' }
-
-  /candidate-groups:
+        201:
+          description: User registered
+  /auth/login:
     post:
-      summary: Create candidate group
-      tags: [Groups]
+      summary: User login
+      tags: [F2 - Authentication]
+      security: []
       requestBody:
         required: true
         content:
           application/json:
             example:
-              name: "CS 200 Level"
-              description: "CS 200 Level Test Group"
-            schema:
-              type: object
-              required: [name]
-              properties:
-                name: { type: string }
-                description: { type: string }
+              email: "admin@test.com"
+              password: "Password123"
+      responses:
+        200:
+          description: Login successful
+  /auth/profile:
+    get:
+      summary: Get current logged-in user profile
+      tags: [F2 - Authentication]
+      responses:
+        200:
+          description: User profile returned
+
+  # F3: Question Bank
+  /questions:
+    post:
+      summary: Create a new question
+      tags: [F3 - Question Bank]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example:
+              type: "mcq"
+              question: "What is 2+2?"
+              options: ["3", "4", "5"]
+              answer: "4"
+              marks: 5
       responses:
         201:
-          description: Group created
-          content:
-            application/json:
-              example:
-                success: true
-                data:
-                  _id: "64f1c2a5b3c4d5e6f7a8b9c3"
-                  name: "CS 200 Level"
-                  description: "CS 200 Level Test Group"
+          description: Question created
+    get:
+      summary: Get all questions
+      tags: [F3 - Question Bank]
+      parameters:
+        - name: search
+          in: query
+          schema: { type: string }
+      responses:
+        200:
+          description: List of questions
+  /questions/{id}:
+    put:
+      summary: Update a question
+      tags: [F3 - Question Bank]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        200:
+          description: Question updated
 
+  # F4: Exam Creation & Scheduling
   /exams:
     post:
-      summary: Create exam
-      tags: [Exams]
+      summary: Create an exam
+      tags: [F4 - Exams]
       requestBody:
         required: true
         content:
@@ -210,41 +160,40 @@ paths:
               subject: "Computer Science"
               duration: 30
               passMark: 50
-              attemptsAllowed: 1
-              questions:
-                - type: "mcq"
-                  question: "What is 2+2?"
-                  options: ["3", "4", "5"]
-                  answer: "4"
-                  marks: 5
-                - type: "mcq"
-                  question: "Big O of binary search?"
-                  options: ["O(n)", "O(log n)", "O(1)"]
-                  answer: "O(log n)"
-                  marks: 5
-              startDate: "2026-01-01T09:00:00Z"
-              endDate: "2026-01-02T09:00:00Z"
-            schema:
-              type: object
-              required: [title, subject, duration, questions]
+              questions: ["64f1c2a5b3c4d5e6f7a8b9c2"]
       responses:
         201:
           description: Exam created
-          content:
-            application/json:
-              example:
-                success: true
-                data:
-                  _id: "64f1c2a5b3c4d5e6f7a8b9c2"
-                  title: "Algorithms Quiz"
-                  subject: "Computer Science"
-                  duration: 30
-                  passMark: 50
+    get:
+      summary: Get all exams for the tenant
+      tags: [F4 - Exams]
+      responses:
+        200:
+          description: List of exams
+  /exams/{id}/status:
+    patch:
+      summary: Publish or Unpublish an exam
+      tags: [F4 - Exams]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example:
+              status: "published"
+      responses:
+        200:
+          description: Status updated
 
+  # F5: Candidate Management
   /candidates:
     post:
-      summary: Create candidate
-      tags: [Candidates]
+      summary: Create a new candidate
+      tags: [F5 - Candidates]
       requestBody:
         required: true
         content:
@@ -252,132 +201,287 @@ paths:
             example:
               name: "Jane Doe"
               email: "jane@test.com"
-              password: "pass123"
               groupId: "64f1c2a5b3c4d5e6f7a8b9c3"
-            schema:
-              type: object
-              required: [name, email, password, groupId]
       responses:
         201:
           description: Candidate created
-          content:
-            application/json:
-              example:
-                success: true
-                data:
-                  _id: "64f1c2a5b3c4d5e6f7a8b9c4"
-                  name: "Jane Doe"
-                  email: "jane@test.com"
-
-  /candidates/login:
+  /candidates/auth/login:
     post:
-      summary: Candidate login
-      tags: [Auth]
+      summary: Candidate login (Using ID Number and Pin)
+      tags: [F5 - Candidates]
       security: []
       requestBody:
         required: true
         content:
           application/json:
             example:
-              email: "jane@test.com"
-              password: "pass123"
-            schema:
-              type: object
-              required: [email, password]
+              idNumber: "STU-12345"
+              accessPin: "123456"
       responses:
         200:
-          description: Login successful
-          content:
-            application/json:
-              example:
-                success: true
-                token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-                user:
-                  _id: "64f1c2a5b3c4d5e6f7a8b9c4"
-                  name: "Jane Doe"
-                  email: "jane@test.com"
-                  role: "candidate"
-
-  /exams/{id}/submit:
+          description: Candidate logged in
+  /candidate-groups:
     post:
-      summary: Submit exam answers
-      tags: [Exams]
-      parameters:
-        - name: id
-          in: path
-          required: true
-          schema: { type: string, example: "64f1c2a5b3c4d5e6f7a8b9c2" }
+      summary: Create a candidate group
+      tags: [F5 - Candidates]
       requestBody:
         required: true
         content:
           application/json:
             example:
-              answers: ["4", "O(log n)"]
-            schema:
-              type: object
-              required: [answers]
-              properties:
-                answers: { type: array, items: { type: string } }
+              name: "Batch A"
       responses:
-        200:
-          description: Submission processed
-          content:
-            application/json:
-              example:
-                success: true
-                data:
-                  sessionId: "64f1c2a5b3c4d5e6f7a8b9c5"
-                  score: 10
-                  totalMarks: 10
-                  passed: true
-              schema: { $ref: '#/components/schemas/SubmissionResult' }
-
-  /scoring/session/{sessionId}:
-    get:
-      summary: Get scoring result for a session
-      tags: [Scoring]
-      parameters:
-        - name: sessionId
-          in: path
-          required: true
-          schema: { type: string, example: "64f1c2a5b3c4d5e6f7a8b9c5" }
-      responses:
-        200:
-          description: Scoring result
-          content:
-            application/json:
-              example:
-                success: true
-                data:
-                  score: 10
-                  totalMarks: 10
-                  passed: true
-                  details:
-                    - question: "What is 2+2?"
-                      correct: true
-                      score: 5
-                    - question: "Big O of binary search?"
-                      correct: true
-                      score: 5
-  /tenants/{id}:
-    delete:
-      summary: Delete tenant and all related data
-      tags: [Tenants]
+        201:
+          description: Group created
+  /candidate-groups/{id}/members:
+    patch:
+      summary: Add candidates to group
+      tags: [F5 - Candidates]
       parameters:
         - name: id
           in: path
           required: true
-          schema: { type: string, example: "64f1c2a5b3c4d5e6f7a8b9c0" }
+          schema: { type: string }
       responses:
         200:
-          description: Tenant deleted
-          content:
-            application/json:
-              example:
-                success: true
-                message: "Tenant and all related data deleted successfully"
-                deletedAt: "2026-01-01T10:00:00Z"
-        404:
-          description: Tenant not found
-        403:
-          description: Forbidden
+          description: Group updated
+
+  # F6: Exam Session
+  /sessions/start:
+    post:
+      summary: Start an exam session for candidate
+      tags: [F6 - Exam Session]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example:
+              examId: "64f1c2a5b3c4d5e6f7a8b9c2"
+      responses:
+        200:
+          description: Session started
+  /sessions/save-answer:
+    patch:
+      summary: Auto-save an answer during an exam
+      tags: [F6 - Exam Session]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example:
+              sessionId: "64f1c2a5b3c4d5e6f7a8b9c5"
+              questionId: "64f1c2a5b3c4d5e6f7a8b9c2"
+              answer: "4"
+      responses:
+        200:
+          description: Answer saved
+  /sessions/tab-switch:
+    patch:
+      summary: Log a tab switch penalty
+      tags: [F6 - Exam Session]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example:
+              sessionId: "64f1c2a5b3c4d5e6f7a8b9c5"
+      responses:
+        200:
+          description: Warning recorded
+  /sessions/submit:
+    post:
+      summary: Submit the exam for grading
+      tags: [F6 - Exam Session]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example:
+              sessionId: "64f1c2a5b3c4d5e6f7a8b9c5"
+      responses:
+        200:
+          description: Exam submitted
+
+  # F7: Scoring & Autograding
+  /scoring/manual-queue:
+    get:
+      summary: Get pending subjective questions to manually grade
+      tags: [F7 - Scoring]
+      responses:
+        200:
+          description: Queue returned
+  /scoring/results/{resultId}/manual:
+    patch:
+      summary: Submit manual marks for a question
+      tags: [F7 - Scoring]
+      parameters:
+        - name: resultId
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example:
+              questionId: "64f1c2a5b3c4d5e6f7a8b9c2"
+              marksAwarded: 5
+      responses:
+        200:
+          description: Score updated
+  /scoring/results/{resultId}/release:
+    patch:
+      summary: Officially release the result to the candidate
+      tags: [F7 - Scoring]
+      parameters:
+        - name: resultId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        200:
+          description: Result released
+
+  # F8: Results & Certificates
+  /results/me:
+    get:
+      summary: Candidate views their own results
+      tags: [F8 - Results & Certificates]
+      responses:
+        200:
+          description: Results returned
+  /results/all:
+    get:
+      summary: Admin views all results
+      tags: [F8 - Results & Certificates]
+      responses:
+        200:
+          description: All results returned
+  /results/{id}/certificate:
+    get:
+      summary: Download PDF Certificate
+      tags: [F8 - Results & Certificates]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        200:
+          description: PDF stream
+  /results/verify/{code}:
+    get:
+      summary: Public certificate verification
+      tags: [F8 - Results & Certificates]
+      security: []
+      parameters:
+        - name: code
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        200:
+          description: Verification data
+
+  # F9: Analytics & Reporting
+  /analytics/exams/{examId}/stats:
+    get:
+      summary: Get statistics and distributions for an exam
+      tags: [F9 - Analytics]
+      parameters:
+        - name: examId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        200:
+          description: Analytics returned
+  /analytics/platform/summary:
+    get:
+      summary: Super Admin platform summary
+      tags: [F9 - Analytics]
+      responses:
+        200:
+          description: Summary data returned
+
+  # F10: Notifications
+  /notifications:
+    post:
+      summary: Send a manual notification
+      tags: [F10 - Notifications]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example:
+              title: "Exam Tomorrow"
+              message: "Please prepare."
+              recipientId: "64f1c2a5b3c4d5e6f7a8b9c4"
+      responses:
+        200:
+          description: Notification sent
+  /notifications/me:
+    get:
+      summary: View my notifications feed
+      tags: [F10 - Notifications]
+      responses:
+        200:
+          description: Feed returned
+  /notifications/preferences:
+    patch:
+      summary: Update notification preferences (opt-in/out)
+      tags: [F10 - Notifications]
+      responses:
+        200:
+          description: Preferences updated
+
+  # F11: Subscriptions & Billing
+  /subscriptions/plans:
+    get:
+      summary: View available subscription plans
+      tags: [F11 - Subscriptions & Billing]
+      security: []
+      responses:
+        200:
+          description: Plans returned
+  /subscriptions:
+    post:
+      summary: Subscribe tenant to a plan
+      tags: [F11 - Subscriptions & Billing]
+      responses:
+        200:
+          description: Subscription created
+  /billing/invoices:
+    get:
+      summary: View past billing invoices
+      tags: [F11 - Subscriptions & Billing]
+      responses:
+        200:
+          description: Invoices returned
+
+  # Payment Webhooks
+  /webhooks/paystack:
+    post:
+      summary: Paystack Payment Webhook (Auto triggered by Paystack)
+      tags: [F11 - Subscriptions & Billing]
+      security: []
+      responses:
+        200:
+          description: Webhook received
+  /webhooks/flutterwave:
+    post:
+      summary: Flutterwave Payment Webhook (Auto triggered by Flutterwave)
+      tags: [F11 - Subscriptions & Billing]
+      security: []
+      responses:
+        200:
+          description: Webhook received
+
+  # F12: System Audit Logs
+  /audit:
+    get:
+      summary: View system security audit logs
+      tags: [F12 - System Audit Logs]
+      responses:
+        200:
+          description: Audit logs returned
