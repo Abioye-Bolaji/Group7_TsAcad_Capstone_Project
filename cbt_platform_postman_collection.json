@@ -1,7 +1,7 @@
 {
   "info": {
-    "name": "CBT Platform API (100% Comprehensive)",
-    "description": "Manually mapped API endpoints from all 15 controller routes.",
+    "name": "CBT Platform API (100% Comprehensive w/ Bodies)",
+    "description": "Manually mapped API endpoints from all 15 controller routes, including request bodies and sample schemas for team testing.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -23,6 +23,15 @@
                 "auth",
                 "register"
               ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Admin User\",\n  \"email\": \"admin@test.com\",\n  \"password\": \"Password123\",\n  \"role\": \"tenant_admin\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           }
         },
@@ -41,6 +50,15 @@
                 "auth",
                 "login"
               ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@test.com\",\n  \"password\": \"Password123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           }
         },
@@ -128,6 +146,15 @@
                 "auth",
                 "forgot-password"
               ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@test.com\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           }
         },
@@ -147,6 +174,15 @@
                 "reset-password",
                 "{{token}}"
               ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"password\": \"NewPassword123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           }
         },
@@ -165,6 +201,15 @@
                 "auth",
                 "refresh-token"
               ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"your-refresh-token-here\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           }
         }
@@ -221,7 +266,16 @@
                 "value": "Bearer {{token}}",
                 "type": "text"
               }
-            ]
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"settings\": {\n    \"autoGrade\": true\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
           }
         },
         {
@@ -245,7 +299,16 @@
                 "value": "Bearer {{token}}",
                 "type": "text"
               }
-            ]
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Global University\",\n  \"email\": \"contact@global.edu\",\n  \"plan\": \"premium\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
           }
         },
         {
@@ -344,7 +407,16 @@
                 "value": "Bearer {{token}}",
                 "type": "text"
               }
-            ]
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated University Name\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
           }
         },
         {
@@ -422,7 +494,16 @@
                 "value": "Bearer {{token}}",
                 "type": "text"
               }
-            ]
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"plan\": \"enterprise\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
           }
         },
         {
@@ -460,14 +541,13 @@
           "request": {
             "method": "POST",
             "url": {
-              "raw": "http://localhost:5000/api/v1/question-bank/questions",
+              "raw": "http://localhost:5000/api/v1/questions",
               "host": [
                 "http://localhost:5000"
               ],
               "path": [
                 "api",
                 "v1",
-                "question-bank",
                 "questions"
               ]
             },
@@ -477,7 +557,16 @@
                 "value": "Bearer {{token}}",
                 "type": "text"
               }
-            ]
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"mcq\",\n  \"question\": \"What is 2+2?\",\n  \"options\": [\n    \"3\",\n    \"4\",\n    \"5\"\n  ],\n  \"answer\": \"4\",\n  \"marks\": 5,\n  \"category\": \"Math\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
           }
         },
         {
@@ -485,14 +574,13 @@
           "request": {
             "method": "GET",
             "url": {
-              "raw": "http://localhost:5000/api/v1/question-bank/questions",
+              "raw": "http://localhost:5000/api/v1/questions",
               "host": [
                 "http://localhost:5000"
               ],
               "path": [
                 "api",
                 "v1",
-                "question-bank",
                 "questions"
               ]
             },
@@ -510,14 +598,13 @@
           "request": {
             "method": "GET",
             "url": {
-              "raw": "http://localhost:5000/api/v1/question-bank/questions/{{id}}",
+              "raw": "http://localhost:5000/api/v1/questions/{{id}}",
               "host": [
                 "http://localhost:5000"
               ],
               "path": [
                 "api",
                 "v1",
-                "question-bank",
                 "questions",
                 "{{id}}"
               ]
@@ -536,14 +623,13 @@
           "request": {
             "method": "PUT",
             "url": {
-              "raw": "http://localhost:5000/api/v1/question-bank/questions/{{id}}",
+              "raw": "http://localhost:5000/api/v1/questions/{{id}}",
               "host": [
                 "http://localhost:5000"
               ],
               "path": [
                 "api",
                 "v1",
-                "question-bank",
                 "questions",
                 "{{id}}"
               ]
@@ -554,7 +640,16 @@
                 "value": "Bearer {{token}}",
                 "type": "text"
               }
-            ]
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"marks\": 10\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
           }
         },
         {
@@ -562,14 +657,13 @@
           "request": {
             "method": "DELETE",
             "url": {
-              "raw": "http://localhost:5000/api/v1/question-bank/questions/{{id}}",
+              "raw": "http://localhost:5000/api/v1/questions/{{id}}",
               "host": [
                 "http://localhost:5000"
               ],
               "path": [
                 "api",
                 "v1",
-                "question-bank",
                 "questions",
                 "{{id}}"
               ]
@@ -588,14 +682,13 @@
           "request": {
             "method": "POST",
             "url": {
-              "raw": "http://localhost:5000/api/v1/question-bank/questions/bulk-upload",
+              "raw": "http://localhost:5000/api/v1/questions/bulk-upload",
               "host": [
                 "http://localhost:5000"
               ],
               "path": [
                 "api",
                 "v1",
-                "question-bank",
                 "questions",
                 "bulk-upload"
               ]
@@ -606,34 +699,17 @@
                 "value": "Bearer {{token}}",
                 "type": "text"
               }
-            ]
-          }
-        },
-        {
-          "name": "Update Question Image",
-          "request": {
-            "method": "POST",
-            "url": {
-              "raw": "http://localhost:5000/api/v1/question-bank/questions/{{id}}/image",
-              "host": [
-                "http://localhost:5000"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "question-bank",
-                "questions",
-                "{{id}}",
-                "image"
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "questions",
+                  "type": "file",
+                  "src": ""
+                }
               ]
-            },
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{token}}",
-                "type": "text"
-              }
-            ]
+            }
           }
         }
       ]
@@ -662,7 +738,16 @@
                 "value": "Bearer {{token}}",
                 "type": "text"
               }
-            ]
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Midterm Exam\",\n  \"subject\": \"Mathematics\",\n  \"duration\": 60,\n  \"passMark\": 50,\n  \"questions\": [\n    \"64f...\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
           }
         },
         {
@@ -709,6 +794,15 @@
                 "candidates",
                 "login"
               ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idNumber\": \"STD-123\",\n  \"accessPin\": \"123456\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           }
         },
@@ -759,7 +853,17 @@
                 "value": "Bearer {{token}}",
                 "type": "text"
               }
-            ]
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": ""
+                }
+              ]
+            }
           }
         },
         {
@@ -783,7 +887,16 @@
                 "value": "Bearer {{token}}",
                 "type": "text"
               }
-            ]
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john@example.com\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
           }
         },
         {
@@ -857,7 +970,16 @@
                 "value": "Bearer {{token}}",
                 "type": "text"
               }
-            ]
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Updated\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
           }
         },
         {
@@ -883,7 +1005,16 @@
                 "value": "Bearer {{token}}",
                 "type": "text"
               }
-            ]
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"inactive\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
           }
         },
         {
@@ -937,7 +1068,16 @@
                 "value": "Bearer {{token}}",
                 "type": "text"
               }
-            ]
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Science Department Batch 1\",\n  \"description\": \"First batch\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
           }
         },
         {
@@ -1011,7 +1151,16 @@
                 "value": "Bearer {{token}}",
                 "type": "text"
               }
-            ]
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Batch Name\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
           }
         },
         {
@@ -1062,7 +1211,16 @@
                 "value": "Bearer {{token}}",
                 "type": "text"
               }
-            ]
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"candidateIds\": [\n    \"mongo_id_1\",\n    \"mongo_id_2\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
           }
         },
         {
@@ -1088,7 +1246,16 @@
                 "value": "Bearer {{token}}",
                 "type": "text"
               }
-            ]
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"candidateIds\": [\n    \"mongo_id_1\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
           }
         }
       ]
@@ -1101,14 +1268,14 @@
           "request": {
             "method": "POST",
             "url": {
-              "raw": "http://localhost:5000/api/v1/exam-sessions/start",
+              "raw": "http://localhost:5000/api/v1/sessions/start",
               "host": [
                 "http://localhost:5000"
               ],
               "path": [
                 "api",
                 "v1",
-                "exam-sessions",
+                "sessions",
                 "start"
               ]
             },
@@ -1118,7 +1285,16 @@
                 "value": "Bearer {{token}}",
                 "type": "text"
               }
-            ]
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"examId\": \"exam_mongo_id\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
           }
         },
         {
@@ -1126,14 +1302,14 @@
           "request": {
             "method": "POST",
             "url": {
-              "raw": "http://localhost:5000/api/v1/exam-sessions/save-answer",
+              "raw": "http://localhost:5000/api/v1/sessions/save-answer",
               "host": [
                 "http://localhost:5000"
               ],
               "path": [
                 "api",
                 "v1",
-                "exam-sessions",
+                "sessions",
                 "save-answer"
               ]
             },
@@ -1143,7 +1319,16 @@
                 "value": "Bearer {{token}}",
                 "type": "text"
               }
-            ]
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sessionId\": \"session_id\",\n  \"questionId\": \"question_id\",\n  \"answer\": \"Option A\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
           }
         },
         {
@@ -1151,14 +1336,14 @@
           "request": {
             "method": "POST",
             "url": {
-              "raw": "http://localhost:5000/api/v1/exam-sessions/submit",
+              "raw": "http://localhost:5000/api/v1/sessions/submit",
               "host": [
                 "http://localhost:5000"
               ],
               "path": [
                 "api",
                 "v1",
-                "exam-sessions",
+                "sessions",
                 "submit"
               ]
             },
@@ -1168,7 +1353,16 @@
                 "value": "Bearer {{token}}",
                 "type": "text"
               }
-            ]
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sessionId\": \"session_id\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
           }
         }
       ]
@@ -1332,7 +1526,16 @@
                 "value": "Bearer {{token}}",
                 "type": "text"
               }
-            ]
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"questionId\": \"q_id\",\n  \"marksAwarded\": 5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
           }
         },
         {
@@ -1704,7 +1907,16 @@
                 "value": "Bearer {{token}}",
                 "type": "text"
               }
-            ]
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Reminder\",\n  \"message\": \"Exam tomorrow\",\n  \"recipientId\": \"mongo_id\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
           }
         },
         {
@@ -1729,7 +1941,16 @@
                 "value": "Bearer {{token}}",
                 "type": "text"
               }
-            ]
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"System Update\",\n  \"message\": \"Downtime expected.\",\n  \"recipientRoles\": [\n    \"candidate\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
           }
         },
         {
@@ -1754,7 +1975,16 @@
                 "value": "Bearer {{token}}",
                 "type": "text"
               }
-            ]
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"emailAlerts\": true,\n  \"smsAlerts\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
           }
         }
       ]
@@ -1846,7 +2076,16 @@
                 "value": "Bearer {{token}}",
                 "type": "text"
               }
-            ]
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"planId\": \"mongo_id\",\n  \"paymentProviderId\": \"paystack\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
           }
         },
         {
@@ -1871,7 +2110,16 @@
                 "value": "Bearer {{token}}",
                 "type": "text"
               }
-            ]
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"planId\": \"higher_plan_id\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
           }
         },
         {
@@ -1896,7 +2144,16 @@
                 "value": "Bearer {{token}}",
                 "type": "text"
               }
-            ]
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"planId\": \"lower_plan_id\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
           }
         },
         {
@@ -1921,7 +2178,16 @@
                 "value": "Bearer {{token}}",
                 "type": "text"
               }
-            ]
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Not needed anymore\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
           }
         },
         {
@@ -2231,7 +2497,16 @@
                 "value": "Bearer {{token}}",
                 "type": "text"
               }
-            ]
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tenantId\": \"mongo_id\",\n  \"activeCandidates\": 150,\n  \"storageGB\": 5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
           }
         },
         {
@@ -2359,6 +2634,15 @@
                 "webhooks",
                 "paystack"
               ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"event\": \"charge.success\",\n  \"data\": {\n    \"reference\": \"ref_123\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           }
         },
@@ -2377,6 +2661,15 @@
                 "webhooks",
                 "flutterwave"
               ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"event\": \"charge.completed\",\n  \"data\": {\n    \"tx_ref\": \"ref_123\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
             }
           }
         },
