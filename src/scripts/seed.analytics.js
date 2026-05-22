@@ -30,10 +30,16 @@ const seed = async () => {
         await mongoose.connect(process.env.MONGO_URI);
         console.log('✅ MongoDB Connected');
 
-        // Find first tenant and its candidates
-        const tenant = await Tenant.findOne({});
+        // Find a tenant that has candidates
+        const candidate = await Candidate.findOne({});
+        if (!candidate) {
+            console.error('❌ No candidates found in the database. Run npm run seed:demo first.');
+            process.exit(1);
+        }
+
+        const tenant = await Tenant.findById(candidate.tenantId);
         if (!tenant) {
-            console.error('❌ No tenant found. Run npm run seed:demo first.');
+            console.error('❌ Tenant for the candidate not found.');
             process.exit(1);
         }
 

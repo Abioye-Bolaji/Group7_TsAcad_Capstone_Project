@@ -1,0 +1,501 @@
+openapi: 3.0.5
+info:
+  title: Multitenancy CBT Platform API
+  version: 1.0.0
+  description: Complete API documentation covering all 12 core features including Tenants, Exams, Autograding, Analytics, and Billing.
+servers:
+- url: http://localhost:5000/api/v1
+  description: Local Development Server
+
+tags:
+  - name: F1 - Tenant Management
+  - name: F2 - Authentication
+  - name: F3 - Question Bank
+  - name: F4 - Exams
+  - name: F5 - Candidates
+  - name: F6 - Exam Session
+  - name: F7 - Scoring
+  - name: F8 - Results & Certificates
+  - name: F9 - Analytics
+  - name: F10 - Notifications
+  - name: F11 - Subscriptions & Billing
+  - name: F12 - System Audit Logs
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+security:
+  - bearerAuth: []
+
+paths:
+  # F1: Tenant Management
+  /tenants:
+    post:
+      summary: Create a new tenant (School)
+      tags: [F1 - Tenant Management]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example:
+              name: "Test Uni A"
+              email: "admin@test.com"
+              plan: "basic"
+      responses:
+        201:
+          description: Tenant created
+    get:
+      summary: Get all tenants
+      tags: [F1 - Tenant Management]
+      responses:
+        200:
+          description: List of tenants
+  /tenants/{id}:
+    get:
+      summary: Get a specific tenant
+      tags: [F1 - Tenant Management]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        200:
+          description: Tenant details
+    delete:
+      summary: Delete tenant and all related data
+      tags: [F1 - Tenant Management]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        200:
+          description: Tenant deleted
+
+  # F2: Authentication & RBAC
+  /auth/register:
+    post:
+      summary: Register a new admin user
+      tags: [F2 - Authentication]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example:
+              name: "Admin User"
+              email: "admin@test.com"
+              password: "Password123"
+              role: "tenant_admin"
+      responses:
+        201:
+          description: User registered
+  /auth/login:
+    post:
+      summary: User login
+      tags: [F2 - Authentication]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example:
+              email: "admin@test.com"
+              password: "Password123"
+      responses:
+        200:
+          description: Login successful
+  /auth/profile:
+    get:
+      summary: Get current logged-in user profile
+      tags: [F2 - Authentication]
+      responses:
+        200:
+          description: User profile returned
+
+  # F3: Question Bank
+  /questions:
+    post:
+      summary: Create a new question
+      tags: [F3 - Question Bank]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example:
+              type: "mcq"
+              question: "What is 2+2?"
+              options: ["3", "4", "5"]
+              answer: "4"
+              marks: 5
+      responses:
+        201:
+          description: Question created
+    get:
+      summary: Get all questions
+      tags: [F3 - Question Bank]
+      parameters:
+        - name: search
+          in: query
+          schema: { type: string }
+      responses:
+        200:
+          description: List of questions
+  /questions/{id}:
+    put:
+      summary: Update a question
+      tags: [F3 - Question Bank]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        200:
+          description: Question updated
+
+  # F4: Exam Creation & Scheduling
+  /exams:
+    post:
+      summary: Create an exam
+      tags: [F4 - Exams]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example:
+              title: "Algorithms Quiz"
+              subject: "Computer Science"
+              duration: 30
+              passMark: 50
+              questions: ["64f1c2a5b3c4d5e6f7a8b9c2"]
+      responses:
+        201:
+          description: Exam created
+    get:
+      summary: Get all exams for the tenant
+      tags: [F4 - Exams]
+      responses:
+        200:
+          description: List of exams
+  /exams/{id}/status:
+    patch:
+      summary: Publish or Unpublish an exam
+      tags: [F4 - Exams]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example:
+              status: "published"
+      responses:
+        200:
+          description: Status updated
+
+  # F5: Candidate Management
+  /candidates:
+    post:
+      summary: Create a new candidate
+      tags: [F5 - Candidates]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example:
+              name: "Jane Doe"
+              email: "jane@test.com"
+              groupId: "64f1c2a5b3c4d5e6f7a8b9c3"
+      responses:
+        201:
+          description: Candidate created
+  /candidates/auth/login:
+    post:
+      summary: Candidate login (Using ID Number and Pin)
+      tags: [F5 - Candidates]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example:
+              idNumber: "STU-12345"
+              accessPin: "123456"
+      responses:
+        200:
+          description: Candidate logged in
+  /candidate-groups:
+    post:
+      summary: Create a candidate group
+      tags: [F5 - Candidates]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example:
+              name: "Batch A"
+      responses:
+        201:
+          description: Group created
+  /candidate-groups/{id}/members:
+    patch:
+      summary: Add candidates to group
+      tags: [F5 - Candidates]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        200:
+          description: Group updated
+
+  # F6: Exam Session
+  /sessions/start:
+    post:
+      summary: Start an exam session for candidate
+      tags: [F6 - Exam Session]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example:
+              examId: "64f1c2a5b3c4d5e6f7a8b9c2"
+      responses:
+        200:
+          description: Session started
+  /sessions/save-answer:
+    patch:
+      summary: Auto-save an answer during an exam
+      tags: [F6 - Exam Session]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example:
+              sessionId: "64f1c2a5b3c4d5e6f7a8b9c5"
+              questionId: "64f1c2a5b3c4d5e6f7a8b9c2"
+              answer: "4"
+      responses:
+        200:
+          description: Answer saved
+  /sessions/tab-switch:
+    patch:
+      summary: Log a tab switch penalty
+      tags: [F6 - Exam Session]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example:
+              sessionId: "64f1c2a5b3c4d5e6f7a8b9c5"
+      responses:
+        200:
+          description: Warning recorded
+  /sessions/submit:
+    post:
+      summary: Submit the exam for grading
+      tags: [F6 - Exam Session]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example:
+              sessionId: "64f1c2a5b3c4d5e6f7a8b9c5"
+      responses:
+        200:
+          description: Exam submitted
+
+  # F7: Scoring & Autograding
+  /scoring/manual-queue:
+    get:
+      summary: Get pending subjective questions to manually grade
+      tags: [F7 - Scoring]
+      responses:
+        200:
+          description: Queue returned
+  /scoring/results/{resultId}/manual:
+    patch:
+      summary: Submit manual marks for a question
+      tags: [F7 - Scoring]
+      parameters:
+        - name: resultId
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example:
+              questionId: "64f1c2a5b3c4d5e6f7a8b9c2"
+              marksAwarded: 5
+      responses:
+        200:
+          description: Score updated
+  /scoring/results/{resultId}/release:
+    patch:
+      summary: Officially release the result to the candidate
+      tags: [F7 - Scoring]
+      parameters:
+        - name: resultId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        200:
+          description: Result released
+
+  # F8: Results & Certificates
+  /results/me:
+    get:
+      summary: Candidate views their own results
+      tags: [F8 - Results & Certificates]
+      responses:
+        200:
+          description: Results returned
+  /results/all:
+    get:
+      summary: Admin views all results
+      tags: [F8 - Results & Certificates]
+      responses:
+        200:
+          description: All results returned
+  /results/{id}/certificate:
+    get:
+      summary: Download PDF Certificate
+      tags: [F8 - Results & Certificates]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        200:
+          description: PDF stream
+  /results/verify/{code}:
+    get:
+      summary: Public certificate verification
+      tags: [F8 - Results & Certificates]
+      security: []
+      parameters:
+        - name: code
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        200:
+          description: Verification data
+
+  # F9: Analytics & Reporting
+  /analytics/exams/{examId}/stats:
+    get:
+      summary: Get statistics and distributions for an exam
+      tags: [F9 - Analytics]
+      parameters:
+        - name: examId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        200:
+          description: Analytics returned
+  /analytics/platform/summary:
+    get:
+      summary: Super Admin platform summary
+      tags: [F9 - Analytics]
+      responses:
+        200:
+          description: Summary data returned
+
+  # F10: Notifications
+  /notifications:
+    post:
+      summary: Send a manual notification
+      tags: [F10 - Notifications]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example:
+              title: "Exam Tomorrow"
+              message: "Please prepare."
+              recipientId: "64f1c2a5b3c4d5e6f7a8b9c4"
+      responses:
+        200:
+          description: Notification sent
+  /notifications/me:
+    get:
+      summary: View my notifications feed
+      tags: [F10 - Notifications]
+      responses:
+        200:
+          description: Feed returned
+  /notifications/preferences:
+    patch:
+      summary: Update notification preferences (opt-in/out)
+      tags: [F10 - Notifications]
+      responses:
+        200:
+          description: Preferences updated
+
+  # F11: Subscriptions & Billing
+  /subscriptions/plans:
+    get:
+      summary: View available subscription plans
+      tags: [F11 - Subscriptions & Billing]
+      security: []
+      responses:
+        200:
+          description: Plans returned
+  /subscriptions:
+    post:
+      summary: Subscribe tenant to a plan
+      tags: [F11 - Subscriptions & Billing]
+      responses:
+        200:
+          description: Subscription created
+  /billing/invoices:
+    get:
+      summary: View past billing invoices
+      tags: [F11 - Subscriptions & Billing]
+      responses:
+        200:
+          description: Invoices returned
+
+  # Payment Webhooks
+  /webhooks/paystack:
+    post:
+      summary: Paystack Payment Webhook (Auto triggered by Paystack)
+      tags: [F11 - Subscriptions & Billing]
+      security: []
+      responses:
+        200:
+          description: Webhook received
+  /webhooks/flutterwave:
+    post:
+      summary: Flutterwave Payment Webhook (Auto triggered by Flutterwave)
+      tags: [F11 - Subscriptions & Billing]
+      security: []
+      responses:
+        200:
+          description: Webhook received
+
+  # F12: System Audit Logs
+  /audit:
+    get:
+      summary: View system security audit logs
+      tags: [F12 - System Audit Logs]
+      responses:
+        200:
+          description: Audit logs returned

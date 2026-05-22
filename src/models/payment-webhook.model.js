@@ -87,7 +87,6 @@ const paymentWebhookSchema = new mongoose.Schema(
 
 // Indexes for quick lookups
 paymentWebhookSchema.index({ provider: 1, eventType: 1 });
-paymentWebhookSchema.index({ reference: 1 });
 paymentWebhookSchema.index({ status: 1, createdAt: -1 });
 paymentWebhookSchema.index({ nextRetryAt: 1 }); // For retry jobs
 

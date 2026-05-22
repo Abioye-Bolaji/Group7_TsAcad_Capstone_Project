@@ -34,6 +34,23 @@ const analyticsRoutes = require('./routes/analytics.routes'); // F9
 
 const app = express();
 
+// swagger docs setup
+const swaggerUi = require('swagger-ui-express');
+const YAML = require('yamljs');
+const path = require('path');
+
+// Load swagger.yaml from project root
+const swaggerDocument = YAML.load(path.join(__dirname, '../swagger.yaml'));
+
+// Serve docs at /docs
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument, {
+  explorer: true,
+  swaggerOptions: {
+    persistAuthorization: true // keeps JWT after refresh
+  }
+}));
+
+
 // ─── 1. GLOBAL MIDDLEWARES ────────────────────────────────────────────────────
 app.use(cors());
 app.use(morgan("dev"));
