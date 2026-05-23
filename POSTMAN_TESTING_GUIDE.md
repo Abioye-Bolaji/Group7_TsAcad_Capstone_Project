@@ -215,17 +215,30 @@ Switching roles again. The student sits for the exam.
 
 ## Phase 6: Scoring & Results
 
-The exam is autograded upon submission. We verify the results.
+The exam is autograded upon submission. If manual grading is needed (Essay/Short Answer), follow these steps.
 
-### 16. Get Candidate Result by Session
-- **Endpoint:** `GET /api/v1/scoring/sessions/<sessionId>/result`
-- **No Body needed.** This confirms the candidate's score.
+### 16. Manual Grading (If Applicable)
+- **Endpoint:** `PATCH /api/v1/scoring/results/<resultId>/manual`
+- **Body:**
+```json
+{
+  "questionId": "<QUESTION_ID>",
+  "marksAwarded": 5,
+  "feedback": "Well written!"
+}
+```
 
-**Note:** Save the `_id` of the result object returned. This is your `resultId`.
+### 17. Release Result (Admin Action)
+- **Endpoint:** `PATCH /api/v1/scoring/results/<resultId>/release`
+- **Note:** Candidates can only view their results/certificates *after* this step is performed by an admin.
 
-### 17. Download Certificate
+### 18. Get Candidate Result (Candidate View)
+- **Endpoint:** `GET /api/v1/results/me`
+- **No Body needed.** This confirms the candidate's score and passing status.
+
+### 19. Download Certificate
 - **Endpoint:** `GET /api/v1/results/<resultId>/certificate`
-- **No Body needed.** This will stream the PDF certificate.
+- **No Body needed.** This will stream the personalized PDF certificate with the candidate's name.
 
 ---
 
@@ -233,16 +246,25 @@ The exam is autograded upon submission. We verify the results.
 
 Finally, log back in as Tenant Admin to see reporting.
 
-### 18. Login as Tenant Admin (Again)
+### 20. Login as Tenant Admin (Again)
 - Execute **Step 5** again to get the Tenant Admin token.
 
-### 19. Get Exam Analytics (Stats)
+### 21. Get Exam Analytics (Stats)
 - **Endpoint:** `GET /api/v1/analytics/exams/<examId>/stats`
 - **No Body needed.** Displays passing rate, highest/lowest scores.
 
-### 20. View Audit Logs
+### 22. View Audit Logs
 - **Endpoint:** `GET /api/v1/audit`
-- **No Body needed.** Displays all the actions (creations, logins, submissions) that just occurred.
+- **No Body needed.** Displays all the actions (creations, logins, submissions, and status changes) that just occurred.
+
+---
+
+## Phase 8: Payment & Webhooks (Integration Testing)
+
+### 23. Simulate Paystack Webhook
+- **Endpoint:** `POST /api/v1/webhooks/paystack`
+- **Headers:** `x-paystack-signature` (Must match HMAC-SHA512 of body)
+- **Note:** The system checks for idempotency to prevent duplicate processing.
 
 ---
 **Testing Complete!** Following this path ensures all interdependent relationships (Tenants -> Groups -> Candidates -> Questions -> Exams -> Sessions -> Results) are successfully created and verified.
