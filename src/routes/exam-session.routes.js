@@ -3,6 +3,7 @@ const router = express.Router();
 
 const authMiddleware = require("../middlewares/auth.middleware");
 const tenantMiddleware = require("../middlewares/tenant.middleware");
+const { featureGatingMiddleware, checkExamsPerMonthLimit } = require('../middlewares/feature-gating.middleware');
 
 const {
     startExamSession,
@@ -15,7 +16,14 @@ const {
  * Candidates use these to sit for exams
  */
 
-router.post("/start", authMiddleware, tenantMiddleware, startExamSession);
+router.post(
+    "/start", 
+    authMiddleware, 
+    tenantMiddleware, 
+    featureGatingMiddleware(null, checkExamsPerMonthLimit),
+    startExamSession
+);
+
 router.post("/save-answer", authMiddleware, tenantMiddleware, saveAnswer);
 router.post("/submit", authMiddleware, tenantMiddleware, submitExam);
 
