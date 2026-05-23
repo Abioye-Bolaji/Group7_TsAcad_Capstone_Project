@@ -27,44 +27,44 @@ const authorizeRoles = require('../middlewares/role.middleware');
 // ═════════════════════════════════════════════════════════════════════════════
 
 
-router.post('/questions', 
+router.post('/', 
             authMiddleware, 
             tenantMiddleware,
             questionBankController.createQuestion
         );
 
-router.get('/questions', 
+router.get('/', 
             authMiddleware, 
             tenantMiddleware,
             questionBankController.getQuestions
         );
 
-router.get('/questions/:id', 
+router.get('/:id', 
             authMiddleware, 
             tenantMiddleware,
             questionBankController.getQuestionById
         );
 
-router.put('/questions/:id', 
+router.put('/:id', 
             authMiddleware, 
             tenantMiddleware,
             questionBankController.updateQuestion
         );
 
-router.delete('/questions/:id', 
+router.delete('/:id', 
             authMiddleware, 
             tenantMiddleware,
             questionBankController.deleteQuestion     
         );
 
-router.post('/questions/bulk-upload', 
+router.post('/bulk-upload', 
             authMiddleware,
             tenantMiddleware,
             uploadQuestion.single('file'),
             bulkImportQuestions
         );
 
-router.post('/questions/:id/image', 
+router.post('/:id/image', 
             authMiddleware,
             tenantMiddleware,
             uploadImage.single('image'),

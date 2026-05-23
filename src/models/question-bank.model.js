@@ -24,12 +24,12 @@ const optionSchema = new mongoose.Schema({
 
 const questionBankSchema = new mongoose.Schema(
     {
-        tenantId: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'Tenant',
-            required: true,
-            index: true,
-        },
+        // tenantId: {
+        //     type: mongoose.Schema.Types.ObjectId,
+        //     ref: 'Tenant',
+        //     required: true,
+        //     index: true,
+        // },
 
         questionType:{
             type: String,
@@ -52,14 +52,27 @@ const questionBankSchema = new mongoose.Schema(
             type: [optionSchema],
             validate: {
                 validator: function (options) {
+                // only enforce for multiple_choice and true_false
+                if (['multiple_choice', 'true_false'].includes(this.questionType)) {
                     return options.some(opt => opt.isCorrect);
-                },
-                message: 'At least one option must be correct',
+                }
+                return true;  // short_answer skips this check
             },
+            message: 'At least one option must be correct',
+    },
         },
         difficulty: {
             type: String,
             enum: ['easy', 'medium', 'hard'],
+        },
+
+        correctAnswer: {
+            type: String,
+            trim: true,
+            // only required when questionType is short_answer
+            required: function () {
+                return this.questionType === 'short_answer';
+            },
         },
 
         /**

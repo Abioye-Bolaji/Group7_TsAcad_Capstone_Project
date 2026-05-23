@@ -20,9 +20,7 @@ exports.createQuestion = async (req, res) => {
         const { questionText, options, difficulty, subjectId, questionType, topic, tags } = req.body;
 
         const imageUrl = req.file ? req.file.path : null; 
-
         const tenantId = req.tenantId; 
-
         const tenant = await Tenant.findById(tenantId);
         if (!tenant) {
             return sendError(res, 'Tenant not found', 404);
