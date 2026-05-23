@@ -303,7 +303,7 @@ const collection = {
             method: 'PATCH', 
             url: { raw: 'http://localhost:5000/api/v1/scoring/results/{{resultId}}/manual', host: ['http://localhost:5000'], path: ['api','v1','scoring','results','{{resultId}}','manual'] }, 
             header: [{ key: 'Authorization', value: 'Bearer {{token}}', type: 'text' }],
-            body: { mode: 'raw', raw: JSON.stringify({ questionId: "q_id", marksAwarded: 5 }, null, 2), options: { raw: { language: 'json' } } }
+            body: { mode: 'raw', raw: JSON.stringify({ questionId: "q_id", marksAwarded: 5, feedback: "Great effort!" }, null, 2), options: { raw: { language: 'json' } } }
           } 
         },
         { 

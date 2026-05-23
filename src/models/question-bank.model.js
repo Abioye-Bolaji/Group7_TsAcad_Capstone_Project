@@ -42,9 +42,24 @@ const questionBankSchema = new mongoose.Schema(
             trim: true,
         },
 
+        subjectId: {
+            type: String,
+            trim: true,
+        },
+
+        topic: {
+            type: String,
+            trim: true,
+        },
+
+        tags: {
+            type: [String],
+            default: [],
+        },
+
         imageUrl: {
             type: String,
-            required: true,
+            default: '',
         },
 
         options: {

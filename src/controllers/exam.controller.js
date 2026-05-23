@@ -1,59 +1,78 @@
 const {
     createExamService,
     getAllExamsService,
+    getExamByIdService,
+    updateExamService,
+    deleteExamService,
+    updateExamStatusService,
 } = require('../services/exam.service');
 
 const { sendSuccess, sendError } = require('../utils/response');
 
-/**
- * @desc Exam Controller
- * Thin HTTP layer — validates input, calls service, sends response.
- * FIXED: Converted from ES Module to CommonJS.
- * FIXED: Import path now points to examService.js (actual filename).
- * FIXED: Uses project-standard sendSuccess/sendError utilities.
- */
-
-/**
- * @route  POST /api/v1/exams
- * @access Examiner / Tenant Admin
- * @desc   Create a new exam scoped to the logged-in user's tenant
- */
 const createExam = async (req, res, next) => {
     try {
         const exam = await createExamService({
             ...req.body,
-            tenantId: req.tenantId,      // ← from tenant.middleware, NOT req.user.tenantId
+            tenantId: req.tenantId,
             createdBy: req.user._id,
         });
-
         return sendSuccess(res, 'Exam created successfully', exam, 201);
     } catch (error) {
         next(error);
     }
 };
 
-/**
- * @route  GET /api/v1/exams
- * @access Examiner / Tenant Admin
- * @desc   List all exams scoped to the logged-in user's tenant
- */
 const getAllExams = async (req, res, next) => {
     try {
-        const exams = await getAllExamsService(req.tenantId); // ← from tenant.middleware
-
-        return sendSuccess(
-            res,
-            'Exams fetched successfully',
-            exams,
-            200,
-            {
-                total: exams.length,
-                page: 1,
-                limit: 10,
-                pages: Math.ceil(exams.length / 10),
-            }
-        );
+        const exams = await getAllExamsService(req.tenantId);
+        return sendSuccess(res, 'Exams fetched successfully', exams, 200, {
+            total: exams.length,
+        });
     } catch (error) {
+        next(error);
+    }
+};
+
+const getExamById = async (req, res, next) => {
+    try {
+        const exam = await getExamByIdService(req.params.id, req.tenantId);
+        if (!exam) return sendError(res, 'Exam not found', 404);
+        return sendSuccess(res, 'Exam fetched successfully', exam);
+    } catch (error) {
+        next(error);
+    }
+};
+
+const updateExam = async (req, res, next) => {
+    try {
+        const exam = await updateExamService(req.params.id, req.tenantId, req.body);
+        if (!exam) return sendError(res, 'Exam not found', 404);
+        return sendSuccess(res, 'Exam updated successfully', exam);
+    } catch (error) {
+        next(error);
+    }
+};
+
+const deleteExam = async (req, res, next) => {
+    try {
+        const exam = await deleteExamService(req.params.id, req.tenantId);
+        if (!exam) return sendError(res, 'Exam not found', 404);
+        return sendSuccess(res, 'Exam deleted successfully', null);
+    } catch (error) {
+        next(error);
+    }
+};
+
+const updateExamStatus = async (req, res, next) => {
+    try {
+        const { status } = req.body;
+        if (!status) return sendError(res, 'status field is required', 400);
+        const exam = await updateExamStatusService(req.params.id, req.tenantId, status);
+        return sendSuccess(res, `Exam status updated to "${status}"`, exam);
+    } catch (error) {
+        if (error.message.startsWith('Validation Error')) {
+            return sendError(res, error.message, 400);
+        }
         next(error);
     }
 };
@@ -61,4 +80,8 @@ const getAllExams = async (req, res, next) => {
 module.exports = {
     createExam,
     getAllExams,
+    getExamById,
+    updateExam,
+    deleteExam,
+    updateExamStatus,
 };

@@ -1,4 +1,5 @@
 const resultService = require('../services/result.service');
+const Candidate = require('../models/candidate.model');
 const { generateCertificatePDFBuffer } = require('../utils/certificate.utils');
 const { sendSuccess, sendError } = require('../utils/response');
 
@@ -46,12 +47,21 @@ const downloadCertificate = async (req, res, next) => {
             return sendError(res, 'Certificate not found or not yet generated', 404);
         }
 
+        // Defensive fix: If the stored candidate name is generic or missing, try to fetch it from the Candidate model
+        let recipientName = result.candidateName;
+        if (!recipientName || recipientName.toLowerCase() === 'candidate') {
+            const candidate = await Candidate.findById(result.candidateId).lean();
+            if (candidate && candidate.name) {
+                recipientName = candidate.name;
+            }
+        }
+
         const pdfBuffer = await generateCertificatePDFBuffer({
-            recipientName: result.candidateName,
+            recipientName: recipientName,
             certCode: result.certificateCode,
             courseName: result.examName,
             issueDate: result.issueDate,
-            issuerName: 'TS Academy CBT Platform', // Could be tenant name
+            issuerName: 'TS Academy CBT Platform', 
         });
 
         res.setHeader('Content-Type', 'application/pdf');
