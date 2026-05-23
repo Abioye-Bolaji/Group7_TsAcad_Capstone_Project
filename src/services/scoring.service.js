@@ -208,9 +208,9 @@ const releaseResult = async (resultId, tenantId, adminId) => {
     
     await result.save();
 
-    sendNotification(tenantId, String(result.candidateId), 'in-app', {
-        subject: 'Result Released',
-        message: `Your exam result has been released. You scored ${result.percentage}%.`,
+    sendNotification(tenantId, String(result.candidateId), 'both', {
+        subject: 'Official Result Released',
+        message: `Your exam "${result.examName}" result has been released. You scored ${result.percentage}% (${result.grade}).`,
         metadata: {
             resultId: String(result._id),
             category: 'examResult',
