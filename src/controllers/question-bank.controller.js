@@ -17,9 +17,12 @@ const cloudinary = require('../config/cloudinary.js');
 
 exports.createQuestion = async (req, res) => {
     try {
-        const { questionText, options, difficulty, subjectId, questionType, topic, tags } = req.body;
+        const { correctAnswer, questionText, options, difficulty, subjectId, questionType, topic, tags, imageUrl } = req.body;
 
-        const imageUrl = req.file ? req.file.path : null; 
+        if (!imageUrl) {
+            return sendError(res, 'Image is required', 400);
+        }
+
         const tenantId = req.tenantId; 
         const tenant = await Tenant.findById(tenantId);
         if (!tenant) {
@@ -28,6 +31,7 @@ exports.createQuestion = async (req, res) => {
         // Create the question
         const question = new QuestionBank({
             tenantId,
+            createdBy: req.user?._id,
             questionText,
             options,
             difficulty,
@@ -36,11 +40,12 @@ exports.createQuestion = async (req, res) => {
             topic,
             tags,
             imageUrl,
+            correctAnswer: questionType === 'short_answer' ? req.body.correctAnswer : undefined,
         });
         await question.save();
         return sendSuccess(res, 'Question created successfully', question, 201);
     } catch (error) {
-        console.error('createQuestion error:', error);
+        console.error('createQuestion error:', error.message);
         return sendError(res, 'Failed to create question', 500);
     }
 };

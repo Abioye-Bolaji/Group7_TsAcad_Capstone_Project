@@ -1,4 +1,3 @@
-const { required } = require('joi');
 const mongoose = require('mongoose');
 
 /**
@@ -24,12 +23,12 @@ const optionSchema = new mongoose.Schema({
 
 const questionBankSchema = new mongoose.Schema(
     {
-        // tenantId: {
-        //     type: mongoose.Schema.Types.ObjectId,
-        //     ref: 'Tenant',
-        //     required: true,
-        //     index: true,
-        // },
+        tenantId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Tenant',
+            required: true,
+            index: true,
+        },
 
         questionType:{
             type: String,
@@ -52,11 +51,10 @@ const questionBankSchema = new mongoose.Schema(
             type: [optionSchema],
             validate: {
                 validator: function (options) {
-                // only enforce for multiple_choice and true_false
                 if (['multiple_choice', 'true_false'].includes(this.questionType)) {
                     return options.some(opt => opt.isCorrect);
                 }
-                return true;  // short_answer skips this check
+                return true; 
             },
             message: 'At least one option must be correct',
     },
@@ -69,7 +67,6 @@ const questionBankSchema = new mongoose.Schema(
         correctAnswer: {
             type: String,
             trim: true,
-            // only required when questionType is short_answer
             required: function () {
                 return this.questionType === 'short_answer';
             },
@@ -78,6 +75,20 @@ const questionBankSchema = new mongoose.Schema(
         /**
          * Track creator
          */
+
+        subjectId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Subject',
+        },
+        topic: {
+            type: String,
+            trim: true,
+        },
+        tags: {
+            type: [String],
+            default: [],
+        },
+
         createdBy: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'User',
