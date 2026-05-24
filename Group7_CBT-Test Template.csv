@@ -1,0 +1,4 @@
+imageUrl,questionType,questionText,optionA,optionB,optionC,optionD,correctAnswer,difficulty,topic,tags
+https://pixabay.com/images/download/muazsikder-problem-9132040_1920.jpg,multiple_choice,What is 2+2?,3,4,5,6,4,easy,Math,"numbers,addition"
+https://pixabay.com/images/download/muazsikder-problem-9132040_1920.jpg,true_false,Paris is the capital of France.,TRUE,FALSE,,,TRUE,medium,Geography,europe
+https://pixabay.com/images/download/muazsikder-problem-9132040_1920.jpg,short_answer,Mention the three arms of Nigeria government,,,,,"Executive, Legislature and Judiciary",,Government,Nigeria
