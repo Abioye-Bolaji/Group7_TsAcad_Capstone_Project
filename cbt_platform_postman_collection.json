@@ -1529,7 +1529,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"questionId\": \"q_id\",\n  \"marksAwarded\": 5\n}",
+              "raw": "{\n  \"questionId\": \"q_id\",\n  \"marksAwarded\": 5,\n  \"feedback\": \"Great effort!\"\n}",
               "options": {
                 "raw": {
                   "language": "json"

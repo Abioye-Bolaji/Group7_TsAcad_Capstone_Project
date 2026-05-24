@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 
-const { createExam, getAllExams } = require('../controllers/exam.controller');
+const { createExam, getAllExams, getExamById, updateExam, deleteExam, updateExamStatus } = require('../controllers/exam.controller');
 const authMiddleware = require('../middlewares/auth.middleware');
 const tenantMiddleware = require('../middlewares/tenant.middleware');
 
@@ -9,16 +9,11 @@ const tenantMiddleware = require('../middlewares/tenant.middleware');
  * @desc Exam Routes
  */
 
-/**
- * POST /api/v1/exams
- * Create a new exam — scoped to logged-in user's tenant
- */
 router.post('/', authMiddleware, tenantMiddleware, createExam);
-
-/**
- * GET /api/v1/exams
- * Get all exams for the logged-in user's tenant
- */
 router.get('/', authMiddleware, tenantMiddleware, getAllExams);
+router.get('/:id', authMiddleware, tenantMiddleware, getExamById);
+router.put('/:id', authMiddleware, tenantMiddleware, updateExam);
+router.delete('/:id', authMiddleware, tenantMiddleware, deleteExam);
+router.patch('/:id/status', authMiddleware, tenantMiddleware, updateExamStatus);
 
 module.exports = router;

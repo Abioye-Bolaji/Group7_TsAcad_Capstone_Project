@@ -72,4 +72,3 @@ router.post('/:id/image',
         );
         
 module.exports = router;
-

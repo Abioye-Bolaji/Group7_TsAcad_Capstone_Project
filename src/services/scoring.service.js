@@ -1,19 +1,13 @@
 const mongoose = require('mongoose');
 const ExamSession = require('../models/exam-session.model');
 const Exam = require('../models/exam.model');
+const Candidate = require('../models/candidate.model');
 const QuestionBank = require('../models/question-bank.model');
 const Result = require('../models/result.model');
 
-const { gradeSession } = require('../utils/grade-engine');
+const { gradeSession, calculateGrade } = require('../utils/grade-engine');
+const { generateCertCode } = require('../utils/certificate.utils');
 const sendNotification = require('../utils/notify');
-
-const calculateGrade = (percentage) => {
-    if (percentage >= 90) return 'A';
-    if (percentage >= 80) return 'B';
-    if (percentage >= 70) return 'C';
-    if (percentage >= 60) return 'D';
-    return 'F';
-};
 
 const gradeSubmittedSession = async (sessionId, tenantId) => {
     const dbSession = await mongoose.startSession();
@@ -36,17 +30,30 @@ const gradeSubmittedSession = async (sessionId, tenantId) => {
         if (!exam) throw new Error('Exam not found');
 
         const questions = await QuestionBank.find(
-            { _id: { $in: exam.questionIds }, tenantId },
+            { _id: { $in: exam.questions }, tenantId },
             null,
             { session: dbSession }
         ).lean();
 
+        // Normalise exam config — model stores passMark as a raw number, engine expects a percentage
+        const totalMarks = exam.totalMarks || 0;
+        const passMarkPercentage = totalMarks > 0
+            ? Math.round((exam.passMark / totalMarks) * 100)
+            : 50;
+
         const gradingResult = gradeSession(questions, session.answers, {
-            totalMarks: exam.totalMarks,
-            passMarkPercentage: exam.passMarkPercentage,
-            negativeMarkingEnabled: exam.negativeMarkingEnabled,
-            penaltyPerWrong: exam.penaltyPerWrong,
+            totalMarks,
+            passMarkPercentage,
+            negativeMarkingEnabled: exam.negativeMarkingEnabled || false,
+            penaltyPerWrong: exam.penaltyPerWrong || 0,
         });
+
+        const candidate = await Candidate.findOne({ _id: session.candidateId, tenantId }, null, { session: dbSession }).lean();
+        if (!candidate) throw new Error('Candidate not found');
+
+        const isPassed = gradingResult.passed;
+        const certCode = isPassed ? generateCertCode() : null;
+        const issueDate = isPassed ? new Date() : null;
 
         const [newResult] = await Result.create(
             [{
@@ -54,17 +61,19 @@ const gradeSubmittedSession = async (sessionId, tenantId) => {
                 sessionId: session._id,
                 examId: session.examId,
                 candidateId: session.candidateId,
-                candidateName: session.candidateName || 'Candidate', // Fallback
-                email: session.email || 'candidate@cbt.com', // Fallback
+                candidateName: candidate.name,
+                email: candidate.email,
                 examName: exam.title,
                 rawScore: gradingResult.rawScore,
                 score: gradingResult.rawScore,
                 totalMarks: gradingResult.totalMarks,
                 maxScore: gradingResult.totalMarks,
                 percentage: gradingResult.percentage,
-                passed: gradingResult.passed,
-                status: gradingResult.passed ? 'Passed' : 'Failed',
+                passed: isPassed,
+                status: isPassed ? 'Passed' : 'Failed',
                 grade: calculateGrade(gradingResult.percentage),
+                certificateCode: certCode,
+                issueDate: issueDate,
                 answerBreakdown: gradingResult.answerBreakdown,
                 manualGradingQueue: gradingResult.manualGradingQueue,
                 gradingStatus: gradingResult.gradingStatus,
@@ -153,7 +162,16 @@ const submitManualGrade = async (resultId, questionId, marksAwarded, graderId, f
     result.score = result.rawScore;
     result.percentage = result.totalMarks > 0
         ? Math.round((result.rawScore / result.totalMarks) * 10000) / 100 : 0;
-    result.passed = result.percentage >= 50;
+    
+    // Fetch exam to get the correct pass mark (don't assume 50%)
+    const exam = await Exam.findById(result.examId);
+    if (exam && exam.totalMarks > 0) {
+        const passMarkPercentage = (exam.passMark / exam.totalMarks) * 100;
+        result.passed = result.percentage >= passMarkPercentage;
+    } else {
+        result.passed = result.percentage >= 50;
+    }
+    
     result.status = result.passed ? 'Passed' : 'Failed';
     result.grade = calculateGrade(result.percentage);
 
@@ -174,11 +192,25 @@ const releaseResult = async (resultId, tenantId, adminId) => {
     result.released = true;
     result.releasedAt = new Date();
     result.releasedBy = adminId;
+    
+    // Repair name if it was previously saved as generic 'Candidate'
+    if (!result.candidateName || result.candidateName.toLowerCase() === 'candidate') {
+        const candidate = await Candidate.findById(result.candidateId).lean();
+        if (candidate && candidate.name) {
+            result.candidateName = candidate.name;
+        }
+    }
+    
+    if (result.passed && !result.certificateCode) {
+        result.certificateCode = generateCertCode();
+        result.issueDate = new Date();
+    }
+    
     await result.save();
 
-    sendNotification(tenantId, String(result.candidateId), 'in-app', {
-        subject: 'Result Released',
-        message: `Your exam result has been released. You scored ${result.percentage}%.`,
+    sendNotification(tenantId, String(result.candidateId), 'both', {
+        subject: 'Official Result Released',
+        message: `Your exam "${result.examName}" result has been released. You scored ${result.percentage}% (${result.grade}).`,
         metadata: {
             resultId: String(result._id),
             category: 'examResult',

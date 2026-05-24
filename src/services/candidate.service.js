@@ -157,7 +157,7 @@ const candidateLogin = async (tenantId, idNumber, accessPin) => {
  * @returns { candidate, plainPin } — plainPin must be sent to candidate immediately, NOT stored plain
  */
 const createCandidate = async (data, tenantId, createdBy) => {
-    const { name, email, phone, idNumber, profilePictureUrl, password, groupIds } = data;
+    const { name, email, phone, idNumber, profilePhotoUrl, password, groupIds } = data;
 
     const { plain: plainPin, hashed: hashedPin } = await generateAccessPin();
 
@@ -167,7 +167,7 @@ const createCandidate = async (data, tenantId, createdBy) => {
         email,
         phone: phone || null,
         idNumber: idNumber || null,
-        profilePictureUrl: profilePictureUrl || null,
+        profilePhotoUrl: profilePhotoUrl || null,
         password: password || null,
         accessPin: hashedPin,
         groupIds: groupIds || [],

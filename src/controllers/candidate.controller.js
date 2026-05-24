@@ -1,4 +1,5 @@
 const { sendSuccess, sendError } = require('../utils/response');
+const { auditLog } = require('../utils/audit-log.utils');
 const {
     validateBody,
     createCandidateSchema,
@@ -122,6 +123,12 @@ const createCandidate = async (req, res, next) => {
             req.user._id
         );
 
+        await auditLog(req, 'CREATE_CANDIDATE', 'candidate', {
+            resourceId: candidate._id,
+            description: `Candidate ${candidate.name} (${candidate.idNumber}) created successfully.`,
+            severity: 'LOW'
+        });
+
         return sendSuccess(
             res,
             'Candidate created successfully. Share the PIN with the candidate — it will not be shown again.',
@@ -206,6 +213,12 @@ const updateCandidate = async (req, res, next) => {
             return sendError(res, 'Candidate not found', 404);
         }
 
+        await auditLog(req, 'UPDATE_CANDIDATE', 'candidate', {
+            resourceId: candidate._id,
+            description: `Profile updated for candidate ${candidate.name}.`,
+            severity: 'LOW'
+        });
+
         return sendSuccess(res, 'Candidate updated successfully', candidate);
     } catch (error) {
         if (error.code === 11000) {
@@ -238,6 +251,12 @@ const updateCandidateStatus = async (req, res, next) => {
             return sendError(res, 'Candidate not found', 404);
         }
 
+        await auditLog(req, 'UPDATE_CANDIDATE_STATUS', 'candidate', {
+            resourceId: candidate._id,
+            description: `Candidate status changed to ${req.body.status}.`,
+            severity: 'MEDIUM'
+        });
+
         return sendSuccess(res, `Candidate status updated to "${req.body.status}"`, candidate);
     } catch (error) {
         next(error);
@@ -256,6 +275,12 @@ const deleteCandidate = async (req, res, next) => {
         if (!result) {
             return sendError(res, 'Candidate not found', 404);
         }
+
+        await auditLog(req, 'DELETE_CANDIDATE', 'candidate', {
+            resourceId: req.params.id,
+            description: `Candidate ${result.name} deleted permanently.`,
+            severity: 'HIGH'
+        });
 
         return sendSuccess(res, 'Candidate deleted successfully', null, 200);
     } catch (error) {
@@ -288,6 +313,11 @@ const bulkImportCandidates = async (req, res, next) => {
             req.user._id
         );
 
+        await auditLog(req, 'BULK_IMPORT_CANDIDATES', 'candidate', {
+            description: `Bulk import completed. ${result.created.length} created, ${result.failed.length} failed.`,
+            severity: 'MEDIUM'
+        });
+
         const message = result.created.length > 0
             ? `Bulk import complete. ${result.created.length} created, ${result.failed.length} failed.`
             : 'Bulk import failed. No candidates were created.';
@@ -313,6 +343,12 @@ const createGroup = async (req, res, next) => {
         if (errors) return sendError(res, 'Validation failed', 400, errors);
 
         const group = await candidateService.createGroup(req.body, req.tenantId, req.user._id);
+
+        await auditLog(req, 'CREATE_CANDIDATE_GROUP', 'candidate-group', {
+            resourceId: group._id,
+            description: `Candidate group ${group.name} created.`,
+            severity: 'LOW'
+        });
 
         return sendSuccess(res, 'Candidate group created successfully', group, 201);
     } catch (error) {
@@ -368,6 +404,12 @@ const updateGroup = async (req, res, next) => {
 
         if (!group) return sendError(res, 'Candidate group not found', 404);
 
+        await auditLog(req, 'UPDATE_CANDIDATE_GROUP', 'candidate-group', {
+            resourceId: group._id,
+            description: `Candidate group ${group.name} updated.`,
+            severity: 'LOW'
+        });
+
         return sendSuccess(res, 'Candidate group updated successfully', group);
     } catch (error) {
         if (error.code === 11000) {
@@ -386,6 +428,12 @@ const deleteGroup = async (req, res, next) => {
         const result = await candidateService.deleteGroup(req.params.id, req.tenantId);
 
         if (!result) return sendError(res, 'Candidate group not found', 404);
+
+        await auditLog(req, 'DELETE_CANDIDATE_GROUP', 'candidate-group', {
+            resourceId: req.params.id,
+            description: `Candidate group ${result.name} deleted.`,
+            severity: 'MEDIUM'
+        });
 
         return sendSuccess(res, 'Candidate group deleted successfully', null, 200);
     } catch (error) {
@@ -407,6 +455,12 @@ const addCandidatesToGroup = async (req, res, next) => {
         );
 
         if (!group) return sendError(res, 'Candidate group not found', 404);
+
+        await auditLog(req, 'ADD_CANDIDATES_TO_GROUP', 'candidate-group', {
+            resourceId: group._id,
+            description: `Added ${req.body.candidateIds.length} candidates to group ${group.name}.`,
+            severity: 'LOW'
+        });
 
         return sendSuccess(res, 'Candidates added to group successfully', group);
     } catch (error) {
@@ -431,6 +485,12 @@ const removeCandidatesFromGroup = async (req, res, next) => {
         );
 
         if (!group) return sendError(res, 'Candidate group not found', 404);
+
+        await auditLog(req, 'REMOVE_CANDIDATES_FROM_GROUP', 'candidate-group', {
+            resourceId: group._id,
+            description: `Removed ${req.body.candidateIds.length} candidates from group ${group.name}.`,
+            severity: 'LOW'
+        });
 
         return sendSuccess(res, 'Candidates removed from group successfully', group);
     } catch (error) {

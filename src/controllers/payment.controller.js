@@ -23,7 +23,8 @@ class PaymentWebhookController {
 
             const result = await paymentService.handlePaystackWebhook(
                 req.body,
-                signature
+                signature,
+                req.rawBody
             );
 
             // Always return 200 to acknowledge receipt
@@ -53,7 +54,8 @@ class PaymentWebhookController {
 
             const result = await paymentService.handleFlutterwaveWebhook(
                 req.body,
-                signature
+                signature,
+                req.rawBody
             );
 
             // Always return 200 to acknowledge receipt

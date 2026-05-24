@@ -64,6 +64,8 @@ await notificationService.sendNotification({
 
 ## Technical Notes for Teammates
 
+* **SMTP Delivery**: The system is configured to use **Gmail** via `nodemailer`. Ensure your `.env` file contains valid `SMTP_USER` and `SMTP_PASS` (App Password) credentials.
 * **Isolation**: The service filters all "Get" requests by `tenantId` and `recipientId` to prevent data leaks.
-* **Performance**: Email sending is handled in the background. The API will not wait for the email to finish before responding to the user.
-* **Requirements**: Ensure the `recipientId` you pass exists in the database, or the notification will fail validation.
+* **Performance**: Email sending is handled in the background via `setImmediate` or promises. The API will not wait for the email to finish before responding to the user.
+* **Status Tracking**: Every email's delivery status (`pending`, `sent`, `failed`) and potential error messages are logged in the `Notification` model for debugging.
+* **Dynamic Branding**: The system automatically pulls the Tenant's name to white-label the email templates.

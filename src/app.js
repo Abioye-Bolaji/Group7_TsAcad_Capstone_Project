@@ -54,7 +54,13 @@ app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument, {
 // ─── 1. GLOBAL MIDDLEWARES ────────────────────────────────────────────────────
 app.use(cors());
 app.use(morgan("dev"));
-app.use(express.json());
+app.use(express.json({
+  verify: (req, res, buf) => {
+    if (req.originalUrl.startsWith('/api/v1/webhooks')) {
+      req.rawBody = buf;
+    }
+  }
+}));
 app.use(express.urlencoded({ extended: false }));
 
 // ─── 2. PUBLIC ROUTES ─────────────────────────────────────────────────────────

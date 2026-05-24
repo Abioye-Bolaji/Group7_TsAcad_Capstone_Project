@@ -17,11 +17,25 @@ const cloudinary = require('../config/cloudinary.js');
 
 exports.createQuestion = async (req, res) => {
     try {
-        const { correctAnswer, questionText, options, difficulty, subjectId, questionType, topic, tags, imageUrl } = req.body;
+        let { questionText, options, difficulty, subjectId, questionType, topic, tags, type, question, answer, category, correctAnswer, imageUrl } = req.body;
 
-        if (!imageUrl) {
-            return sendError(res, 'Image is required', 400);
+        // Auto-map simplified payload format from Postman to strict Schema format
+        if (type === 'mcq' || type === 'true_false' || type === 'multiple-choice') {
+            questionType = questionType || (type === 'mcq' ? 'multiple-choice' : 'true-false');
+            questionText = questionText || question;
+            subjectId = subjectId || category;
+            difficulty = difficulty || 'medium';
+            
+            // Map simple string array to object array
+            if (options && Array.isArray(options) && typeof options[0] === 'string') {
+                options = options.map(opt => ({
+                    optionText: opt,
+                    isCorrect: opt === answer
+                }));
+            }
         }
+
+        const finalImageUrl = req.file ? req.file.path : (imageUrl || ''); 
 
         const tenantId = req.tenantId; 
         const tenant = await Tenant.findById(tenantId);
@@ -29,24 +43,24 @@ exports.createQuestion = async (req, res) => {
             return sendError(res, 'Tenant not found', 404);
         }
         // Create the question
-        const question = new QuestionBank({
+        const q = new QuestionBank({
             tenantId,
             createdBy: req.user?._id,
             questionText,
             options,
             difficulty,
             subjectId,
-            questionType,
+            questionType: questionType ? questionType.replace('-', '_') : undefined, // Model expects multiple_choice, true_false
             topic,
             tags,
-            imageUrl,
-            correctAnswer: questionType === 'short_answer' ? req.body.correctAnswer : undefined,
+            imageUrl: finalImageUrl,
+            correctAnswer: (questionType === 'short_answer' || type === 'short_answer') ? (correctAnswer || answer) : undefined,
         });
-        await question.save();
-        return sendSuccess(res, 'Question created successfully', question, 201);
+        await q.save();
+        return sendSuccess(res, 'Question created successfully', q, 201);
     } catch (error) {
         console.error('createQuestion error:', error.message);
-        return sendError(res, 'Failed to create question', 500);
+        return sendError(res, 'Failed to create question: ' + error.message, 500);
     }
 };
 
@@ -77,8 +91,8 @@ exports.getQuestions = async (req, res) => {
                 $options: 'i',
             };
         }
-        const questions = await QuestionBank.countDocuments(filters).lean();
-        return sendSuccess(res, 'Questions fetched successfully', questions, 200);
+        const questions = await QuestionBank.find(filters).lean();
+        return sendSuccess(res, 'Questions fetched successfully', { total: questions.length, questions }, 200);
     } catch (error) {
         console.error('getQuestions error:', error);
         return sendError(res, 'Failed to fetch questions', 500);
