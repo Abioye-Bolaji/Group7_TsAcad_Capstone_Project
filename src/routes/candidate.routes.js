@@ -5,6 +5,7 @@ const multer = require('multer');
 const authMiddleware   = require('../middlewares/auth.middleware');
 const tenantMiddleware = require('../middlewares/tenant.middleware');
 const authorizeRoles   = require('../middlewares/role.middleware');
+const { featureGatingMiddleware, checkActiveCandidatesLimit } = require('../middlewares/feature-gating.middleware');
 
 const candidateController = require('../controllers/candidate.controller');
 
@@ -85,6 +86,7 @@ router.post(
     authMiddleware,
     tenantMiddleware,
     authorizeRoles('tenant_admin'),
+    featureGatingMiddleware(null, checkActiveCandidatesLimit),
     upload.single('file'),
     candidateController.bulkImportCandidates
 );
@@ -98,6 +100,7 @@ router.post(
     authMiddleware,
     tenantMiddleware,
     authorizeRoles('tenant_admin', 'examiner'),
+    featureGatingMiddleware(null, checkActiveCandidatesLimit),
     candidateController.createCandidate
 );
 

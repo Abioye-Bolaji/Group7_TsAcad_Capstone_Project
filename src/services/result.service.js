@@ -2,20 +2,13 @@ const Result = require('../models/result.model');
 const Candidate = require('../models/candidate.model');
 const Exam = require('../models/exam.model');
 const { generateCertCode } = require('../utils/certificate.utils');
+const { calculateGrade } = require('../utils/grade-engine');
 
 /**
  * @desc Result Service
  * Handles candidate results, grading, and certificate associations.
  * Scoped to tenant via tenantId.
  */
-
-const calculateGrade = (percentage) => {
-    if (percentage >= 90) return 'A';
-    if (percentage >= 80) return 'B';
-    if (percentage >= 70) return 'C';
-    if (percentage >= 60) return 'D';
-    return 'F';
-};
 
 /**
  * Create or Update a result after an exam attempt.
@@ -42,7 +35,9 @@ const upsertResult = async (tenantId, payload) => {
         examId,
         examName: exam.title,
         score,
+        rawScore: score, // Added to comply with model
         maxScore,
+        totalMarks: maxScore, // Added to comply with model
         percentage,
         grade,
         passed,
@@ -90,10 +85,18 @@ const getResultByCandidateId = async (candidateId, tenantId) => {
 };
 
 const verifyCertificate = async (certificateCode) => {
-    return await Result.findOne({ certificateCode })
-        .select('candidateName examName percentage grade issueDate tenantId')
+    const result = await Result.findOne({ certificateCode })
         .populate('tenantId', 'name logoUrl')
         .lean();
+
+    if (result && (!result.candidateName || result.candidateName.toLowerCase() === 'candidate')) {
+        const candidate = await Candidate.findById(result.candidateId).lean();
+        if (candidate && candidate.name) {
+            result.candidateName = candidate.name;
+        }
+    }
+
+    return result;
 };
 
 module.exports = {

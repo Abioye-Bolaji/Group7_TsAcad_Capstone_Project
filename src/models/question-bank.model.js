@@ -1,4 +1,3 @@
-const { required } = require('joi');
 const mongoose = require('mongoose');
 
 /**
@@ -28,12 +27,12 @@ const questionBankSchema = new mongoose.Schema(
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Tenant',
             required: true,
-            index: true, // For faster queries by tenantId
+            index: true,
         },
 
         questionType:{
             type: String,
-            enum: ['multiple-choice', 'true-false', 'short-answer'],
+            enum: ['multiple_choice', 'true_false', 'short_answer'],
             required: true,
         },
 
@@ -43,28 +42,68 @@ const questionBankSchema = new mongoose.Schema(
             trim: true,
         },
 
+        subjectId: {
+            type: String,
+            trim: true,
+        },
+
+        topic: {
+            type: String,
+            trim: true,
+        },
+
+        tags: {
+            type: [String],
+            default: [],
+        },
+
         imageUrl: {
             type: String,
-            required: true,
+            default: '',
         },
 
         options: {
             type: [optionSchema],
             validate: {
                 validator: function (options) {
+                if (['multiple_choice', 'true_false'].includes(this.questionType)) {
                     return options.some(opt => opt.isCorrect);
-                },
-                message: 'At least one option must be correct',
+                }
+                return true; 
             },
+            message: 'At least one option must be correct',
+    },
         },
         difficulty: {
             type: String,
             enum: ['easy', 'medium', 'hard'],
         },
 
+        correctAnswer: {
+            type: String,
+            trim: true,
+            required: function () {
+                return this.questionType === 'short_answer';
+            },
+        },
+
         /**
          * Track creator
          */
+
+        subjectId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Subject',
+        },
+        topic: {
+            type: String,
+            trim: true,
+        },
+        tags: {
+            type: [String],
+            default: [],
+        },
+
         createdBy: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'User',

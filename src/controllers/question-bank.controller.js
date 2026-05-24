@@ -17,33 +17,50 @@ const cloudinary = require('../config/cloudinary.js');
 
 exports.createQuestion = async (req, res) => {
     try {
-        const { questionText, options, difficulty, subjectId, questionType, topic, tags } = req.body;
+        let { questionText, options, difficulty, subjectId, questionType, topic, tags, type, question, answer, category, correctAnswer, imageUrl } = req.body;
 
-        const imageUrl = req.file ? req.file.path : null; 
+        // Auto-map simplified payload format from Postman to strict Schema format
+        if (type === 'mcq' || type === 'true_false' || type === 'multiple-choice') {
+            questionType = questionType || (type === 'mcq' ? 'multiple-choice' : 'true-false');
+            questionText = questionText || question;
+            subjectId = subjectId || category;
+            difficulty = difficulty || 'medium';
+            
+            // Map simple string array to object array
+            if (options && Array.isArray(options) && typeof options[0] === 'string') {
+                options = options.map(opt => ({
+                    optionText: opt,
+                    isCorrect: opt === answer
+                }));
+            }
+        }
+
+        const finalImageUrl = req.file ? req.file.path : (imageUrl || ''); 
 
         const tenantId = req.tenantId; 
-
         const tenant = await Tenant.findById(tenantId);
         if (!tenant) {
             return sendError(res, 'Tenant not found', 404);
         }
         // Create the question
-        const question = new QuestionBank({
+        const q = new QuestionBank({
             tenantId,
+            createdBy: req.user?._id,
             questionText,
             options,
             difficulty,
             subjectId,
-            questionType,
+            questionType: questionType ? questionType.replace('-', '_') : undefined, // Model expects multiple_choice, true_false
             topic,
             tags,
-            imageUrl,
+            imageUrl: finalImageUrl,
+            correctAnswer: (questionType === 'short_answer' || type === 'short_answer') ? (correctAnswer || answer) : undefined,
         });
-        await question.save();
-        return sendSuccess(res, 'Question created successfully', question, 201);
+        await q.save();
+        return sendSuccess(res, 'Question created successfully', q, 201);
     } catch (error) {
-        console.error('createQuestion error:', error);
-        return sendError(res, 'Failed to create question', 500);
+        console.error('createQuestion error:', error.message);
+        return sendError(res, 'Failed to create question: ' + error.message, 500);
     }
 };
 
@@ -74,8 +91,8 @@ exports.getQuestions = async (req, res) => {
                 $options: 'i',
             };
         }
-        const questions = await QuestionBank.countDocuments(filters).lean();
-        return sendSuccess(res, 'Questions fetched successfully', questions, 200);
+        const questions = await QuestionBank.find(filters).lean();
+        return sendSuccess(res, 'Questions fetched successfully', { total: questions.length, questions }, 200);
     } catch (error) {
         console.error('getQuestions error:', error);
         return sendError(res, 'Failed to fetch questions', 500);
@@ -161,11 +178,6 @@ exports.updateQuestionImage = async (req, res) => {
     }
 };
 
-/**
- * @desc Bulk import questions via CSV/Excel
- * @route POST /api/questions/bulk-import
- */
-
 exports.bulkImportQuestions = async (req, res) => {
     try {
         const tenantId = req.tenantId;
@@ -177,9 +189,7 @@ exports.bulkImportQuestions = async (req, res) => {
         /**
          * Read uploaded Excel/CSV file
          */
-        const workbook = XLSX.read(req.file.buffer, {
-            type: 'buffer',
-        });
+        const workbook = XLSX.read(req.file.buffer, { type: 'buffer' });
 
         const sheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[sheetName];
@@ -194,55 +204,95 @@ exports.bulkImportQuestions = async (req, res) => {
         }
 
         /**
-         * Transform rows into DB format
+         * Transform rows into DB format, collecting validation errors along the way
          */
-        const questions = rows.map((row) => {
-            const questionType = row.questionType?.trim();
-            let options = [];
+        const errors = []; 
 
-            /**
-             * Build options for MCQ / True-False
-             */
-            if (
-                questionType === 'multiple_choice' ||
-                questionType === 'true_false'
-            ) {
-                const rawOptions = [
-                    row.optionA,
-                    row.optionB,
-                    row.optionC,
-                    row.optionD,
-                ].filter(Boolean);
+        const questions = rows
+            .map((row, index) => {
+                const rowNum = index + 1;
 
-                options = rawOptions.map((option) => ({
-                    optionText: option,
-                    isCorrect:
-                        option.toString().trim() ===
-                        row.correctAnswer.toString().trim(),
-                }));
-            }
+                // FIX 2: removed the dangling validation block above the loop
+                //        and consolidated all validation here, inside the map
+                if (!row.questionType) {
+                    errors.push(`Row ${rowNum}: missing questionType`);
+                    return null;
+                }
 
-            return {
-                tenantId,
-                subjectId: row.subjectId,
-                topic: row.topic || '',
-                questionType,
-                questionText: row.questionText,
-                options,
-                correctAnswer: row.correctAnswer,
-                difficulty: row.difficulty || 'medium',
-                tags: row.tags
-                    ? row.tags.split(',').map(tag => tag.trim())
-                    : [],
-                imageUrl: row.imageUrl || '',
-            };
-        });
+                if (!row.questionText) {
+                    errors.push(`Row ${rowNum}: missing questionText`);
+                    return null;
+                }
+
+                if (!row.correctAnswer) {
+                    errors.push(`Row ${rowNum}: missing correctAnswer for question: "${row.questionText}"`);
+                    return null;
+                }
+
+                const questionType = row.questionType.trim();
+
+                let options = [];
+
+                /**
+                 * Build options for MCQ / True-False
+                 */
+                if (
+                    questionType === 'multiple_choice' ||
+                    questionType === 'true_false'
+                ) {
+                    const rawOptions = [
+                        row.optionA,
+                        row.optionB,
+                        row.optionC,
+                        row.optionD,
+                    ].filter(Boolean);
+
+                    const correctAnswer = String(row.correctAnswer).trim().toLowerCase();
+
+                    options = rawOptions.map((option) => ({
+                        optionText: String(option).trim(),
+                        isCorrect: String(option).trim().toLowerCase() === correctAnswer,
+                    }));
+
+                    // Guard: catch mismatch early before hitting the DB
+                    const hasCorrect = options.some((o) => o.isCorrect);
+                    if (!hasCorrect) {
+                        errors.push(
+                            `Row ${rowNum}: correctAnswer "${row.correctAnswer}" does not match any of the provided options`
+                        );
+                        return null;
+                    }
+                }
+
+                return {
+                    tenantId,
+                    subjectId: row.subjectId,
+                    topic: row.topic || '',
+                    questionType,
+                    questionText: row.questionText,
+                    options,
+                    correctAnswer: row.correctAnswer,
+                    difficulty: row.difficulty || 'medium',
+                    tags: row.tags
+                        ? row.tags.split(',').map((t) => t.trim())
+                        : [],
+                    imageUrl: row.imageUrl || '',
+                };
+            })
+            .filter(Boolean);
+
+        if (errors.length > 0) {
+            return sendError(res, 'Validation failed for one or more rows', 400, { errors });
+        }
+
+        if (!questions.length) {
+            return sendError(res, 'No valid questions to import', 400);
+        }
 
         /**
          * Insert into DB
          */
-        const importedQuestions =
-            await QuestionBank.insertMany(questions);
+        const importedQuestions = await QuestionBank.insertMany(questions);
 
         return sendSuccess(
             res,
@@ -256,10 +306,9 @@ exports.bulkImportQuestions = async (req, res) => {
 
     } catch (error) {
         console.error('bulkImportQuestions error:', error);
-        return sendError(
-            res,
-            'Failed to import questions',
-            500
-        );
+        return res.status(500).json({
+            success: false,
+            message: error.message,
+        });
     }
 };

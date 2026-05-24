@@ -390,24 +390,31 @@ class SubscriptionService {
     async _generateUpgradeInvoice(subscription, previousPlanId, newPlan, oldPrice) {
         try {
             const invoiceNumber = `INV-${Date.now()}-${uuidv4().substring(0, 8)}`;
-            const difference = newPlan.price - oldPrice;
+            
+            // Calculate proration
+            const today = new Date();
+            const totalDays = Math.ceil((subscription.endDate - subscription.startDate) / (1000 * 60 * 60 * 24)) || 30;
+            const daysRemaining = Math.max(0, Math.ceil((subscription.endDate - today) / (1000 * 60 * 60 * 24)));
+            
+            const priceDifference = newPlan.price - oldPrice;
+            const proratedAmount = Math.round((priceDifference * (daysRemaining / totalDays)) * 100) / 100;
 
             // Create invoice only if there's a difference
-            if (Math.abs(difference) > 0) {
+            if (Math.abs(proratedAmount) > 0) {
                 return await BillingHistory.create({
                     tenantId: subscription.tenantId,
                     invoiceNumber,
                     invoiceDate: new Date(),
-                    dueDate: subscription.endDate,
+                    dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days for upgrades
                     subscriptionId: subscription._id,
                     planId: subscription.planId,
-                    amount: Math.abs(difference),
+                    amount: Math.abs(proratedAmount),
                     currency: subscription.currency,
                     discount: 0,
                     tax: 0,
-                    totalAmount: Math.abs(difference),
-                    status: 'sent',
-                    description: `Plan upgrade/downgrade adjustment`,
+                    totalAmount: Math.abs(proratedAmount),
+                    status: proratedAmount > 0 ? 'sent' : 'paid', // If downgrade (negative), mark as paid (credit)
+                    description: `Plan ${proratedAmount > 0 ? 'upgrade' : 'downgrade'} adjustment (${daysRemaining} days remaining)`,
                     billingPeriod: {
                         startDate: new Date(),
                         endDate: subscription.endDate,

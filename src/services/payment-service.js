@@ -15,26 +15,41 @@ class PaymentService {
      * Verify signature and process payment
      * @param {Object} payload - Webhook payload
      * @param {String} signature - X-Paystack-Signature header
+     * @param {Buffer} rawBody - Raw request body for hashing
      * @returns {Object} Processing result
      */
-    async handlePaystackWebhook(payload, signature) {
+    async handlePaystackWebhook(payload, signature, rawBody) {
         const secret = process.env.PAYSTACK_SECRET_KEY;
 
-        // Verify signature
+        // Verify signature using rawBody if available, fallback to JSON.stringify
+        const dataToHash = rawBody || JSON.stringify(payload);
         const hash = crypto
             .createHmac('sha512', secret)
-            .update(JSON.stringify(payload))
+            .update(dataToHash)
             .digest('hex');
 
         if (hash !== signature) {
             throw new Error('Invalid Paystack signature');
         }
 
+        const reference = payload.data?.reference || payload.data?.access_code || '';
+        
+        // Idempotency check: Have we already processed this reference?
+        const existing = await PaymentWebhook.findOne({ 
+            reference, 
+            status: 'processed',
+            provider: 'paystack'
+        });
+
+        if (existing) {
+            return { status: 'skipped', reason: 'Already processed', tenantId: existing.tenantId };
+        }
+
         // Store webhook for audit trail
         const webhook = await PaymentWebhook.create({
             provider: 'paystack',
             eventType: payload.event,
-            reference: payload.data?.reference || payload.data?.access_code || '',
+            reference,
             webhookId: payload.data?.id?.toString() || null,
             rawPayload: payload,
             status: 'received',
@@ -93,26 +108,41 @@ class PaymentService {
      * Verify signature and process payment
      * @param {Object} payload - Webhook payload
      * @param {String} signature - Veriff header
+     * @param {Buffer} rawBody - Raw request body for hashing
      * @returns {Object} Processing result
      */
-    async handleFlutterwaveWebhook(payload, signature) {
+    async handleFlutterwaveWebhook(payload, signature, rawBody) {
         const secret = process.env.FLUTTERWAVE_SECRET_HASH;
 
-        // Verify signature
+        // Verify signature using rawBody if available
+        const dataToHash = rawBody || JSON.stringify(payload);
         const hash = crypto
             .createHmac('sha256', secret)
-            .update(JSON.stringify(payload))
+            .update(dataToHash)
             .digest('hex');
 
         if (hash !== signature) {
             throw new Error('Invalid Flutterwave signature');
         }
 
+        const reference = payload.data?.tx_ref || payload.data?.reference || '';
+
+        // Idempotency check
+        const existing = await PaymentWebhook.findOne({ 
+            reference, 
+            status: 'processed',
+            provider: 'flutterwave'
+        });
+
+        if (existing) {
+            return { status: 'skipped', reason: 'Already processed', tenantId: existing.tenantId };
+        }
+
         // Store webhook for audit trail
         const webhook = await PaymentWebhook.create({
             provider: 'flutterwave',
             eventType: payload.event,
-            reference: payload.data?.tx_ref || payload.data?.reference || '',
+            reference,
             webhookId: payload.data?.id?.toString() || null,
             rawPayload: payload,
             status: 'received',

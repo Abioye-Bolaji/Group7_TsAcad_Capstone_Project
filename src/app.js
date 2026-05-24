@@ -54,7 +54,13 @@ app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument, {
 // ─── 1. GLOBAL MIDDLEWARES ────────────────────────────────────────────────────
 app.use(cors());
 app.use(morgan("dev"));
-app.use(express.json());
+app.use(express.json({
+  verify: (req, res, buf) => {
+    if (req.originalUrl.startsWith('/api/v1/webhooks')) {
+      req.rawBody = buf;
+    }
+  }
+}));
 app.use(express.urlencoded({ extended: false }));
 
 // ─── 2. PUBLIC ROUTES ─────────────────────────────────────────────────────────
@@ -107,7 +113,6 @@ app.use('/api/v1/results', resultRoutes); // F8
 app.use('/api/v1/notifications', notifyRoutes); // F10
 app.use('/api/v1/scoring', scoringRoutes); // F7
 app.use('/api/v1/analytics', analyticsRoutes); // F9
-
 
 // Future protected routes (add as teammates complete their features):
 

@@ -36,9 +36,10 @@ const startExamSessionService = async ({
     throw new Error("Attempt limit reached");
   }
 
-  // Eligibility check
-  const isAssigned =
-    exam.assignedCandidates.includes(candidateId);
+  // Eligibility check — use .toString() because Mongoose ObjectIds are objects, not primitives
+  const isAssigned = exam.assignedCandidates.some(
+    (id) => id.toString() === candidateId.toString()
+  );
 
   if (!isAssigned) {
     throw new Error("You are not assigned to this exam");

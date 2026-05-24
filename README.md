@@ -48,13 +48,14 @@ The server will run on: `http://localhost:5000`
 
 | Module | Feature | Status |
 | :--- | :--- | :--- |
-| **F1/F2** | **Auth & Multi-tenancy** | Strict isolation between organizations. |
-| **F3** | **Question Bank** | CRUD for questions with bulk upload support. |
-| **F5** | **Candidate Mgmt** | Cohort grouping and CSV student import. |
-| **F6/F8** | **Exams & Results** | Real-time session saving and automated grading. |
-| **Certificates** | **PDF Generation** | Secure, verifiable certificate generation. |
-| **F11** | **Billing** | Subscription-based access (Free/Basic/Pro). |
-| **F12** | **Audit Logs** | Tracking of all tenant and platform actions. |
+| **F1/F2** | **Auth & Multi-tenancy** | ✅ Stable. Strict isolation between organizations. |
+| **F3** | **Question Bank** | ✅ Stable. CRUD for questions with bulk upload and image support. |
+| **F5** | **Candidate Mgmt** | ✅ Stable. Cohort grouping, CSV student import, and plan-limit enforcement. |
+| **F6/F8** | **Exams & Results** | ✅ Stable. Real-time session saving, automated grading, and manual override. |
+| **Certificates** | **PDF Generation** | ✅ Stable. Secure, personalized, and verifiable certificates. |
+| **F10** | **Notifications** | ✅ Stable. Gmail-based email delivery with dynamic tenant branding. |
+| **F11** | **Billing** | ✅ Stable. Subscription-based access with strict plan limit enforcement. |
+| **F12** | **Audit Logs** | ✅ Stable. Tracking of all tenant and platform actions. |
 
 ## 🤝 Team Contribution Rules
 
@@ -65,6 +66,7 @@ To maintain project stability, all contributors **must** follow these rules:
 3.  **Tenant Security**: Every protected route must include `tenantMiddleware`.
     - `router.get('/path', authMiddleware, tenantMiddleware, controller);`
 4.  **CommonJS**: Never use `import` or `export`. Use `require` and `module.exports`.
+5.  **Plan Limits**: Always use `featureGatingMiddleware` for resource-heavy actions (candidate creation, starting exams).
 
 ---
 
