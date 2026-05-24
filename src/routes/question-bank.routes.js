@@ -60,8 +60,8 @@ router.delete('/:id',
 router.post('/bulk-upload', 
             authMiddleware,
             tenantMiddleware,
-            uploadQuestion.single('file'),
-            bulkImportQuestions
+            uploadQuestion.single('questions'),
+            bulkImportQuestions 
         );
 
 router.post('/:id/image', 
